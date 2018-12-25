@@ -39,7 +39,7 @@ def change_dir(path, default_ftp_location="ftpFiles"):
         target_path = "./static/" + default_ftp_location + "/" + path
         if os.path.isdir(target_path):
             files = get_list_of_file_with_path_surface(target_path, path, default_ftp_location)
-            return render_template("index_no_cata.min.html", 
+            return render_template("index.min.html", 
                                     files=files, 
                                     currentPath=" /" if not path else " /" + path)
         else:
