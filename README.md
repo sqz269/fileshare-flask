@@ -13,3 +13,7 @@ a simple FTP server made using flask
 #### Changing ftp dirctory
 + Under ./static/ftpFiles/ is where the shared file will be stored
 + to change the file store location: Edit main.py look for change_dir() function and replace the optional argument "default_ftp_location" to your desire (This location must under "./static/")
+
+##### TODO
++ Add ability to upload file 
++ Add ability to view file details
