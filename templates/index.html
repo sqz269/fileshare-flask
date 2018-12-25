@@ -1,0 +1,79 @@
+﻿<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+        <script src="{{url_for(" static ", filename="Assets/Shared/js/bootstrap.js ")}}" type="text/javascript"></script>
+        <script src="{{url_for(" static ", filename="Assets/Index/js/indexJS.js ")}}" type="text/javascript"></script>
+        <link href="{{url_for(" static ", filename="Assets/Shared/css/bootstrap.css ")}}" rel="stylesheet" type="text/css" />
+        <link href="{{url_for(" static ", filename="Assets/Index/css/indexStyle.css ")}}" rel="stylesheet" type="text/css" /> 
+    </head>
+
+    <body class="bg-secondary" id="body">
+        <nav class="navbar navbar-light">
+            <div class="d-flex p-2">
+                <span class="float-left">
+                    <button type="button" onclick="javascript:cd_parent();" class="btn btn-link btn-sm border border-primary" data-toggle="tooltip" data-placement="top" title="Return to Parent Dir">
+                        <svg xmls="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                            <path fill="none" d="M0 0h24v24H0V0z"/>
+                            <path d="M11 9l1.42 1.42L8.83 14H18V4h2v12H8.83l3.59 3.58L11 21l-6-6 6-6z"/>
+                        </svg>
+                    </button>
+                    <button type="button" onclick="javascript:cd_root();" class="btn btn-link btn-sm border border-primary" data-toggle="tooltip" data-placement="top" title="Return to Root Dir">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                            <path d="M0 0h24v24H0z" fill="none"/>
+                        </svg>
+                    </button>
+                </span>
+                <div>
+                    <span class="float-right text-light" data-currentPath="{{currentPath}}" style="margin-left: 5px;margin-top:3px;">Your location:{{currentPath}}</span>
+                </div>
+            </div>
+                <span class="float-left">
+                    <a id="ChangeTheme" class="text-light" href="javascript:switch_theme();">Light Theme</a>
+                </span>
+            </nav>
+        <div class="row">
+            <div class="panel-group col-sm" id="Files">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title text-center">
+                            <a id="fileType" data-toggle="collapse" href="#listFiles" class="text-light">List Files</a>
+                        </h4>
+                    </div>
+                    <div id="listFiles" class="panel-collapse collapse show">
+                        <ul class="list-group">
+                            {% if files %}
+                                {% for f_filename, file_attr in files.items() %}
+                                    {% if file_attr[1] %}
+                                        <li class="list-group-item bg-dark" id="DIR">
+                                            <span class="float-left">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                                    <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                                    <path d="M0 0h24v24H0z" fill="none"/>
+                                                </svg>
+                                            </span>
+                                            <a href="{{file_attr[0]}}">{{f_filename}}</a>
+                                        </li>
+                                    {% else %}
+                                        <li class="list-group-item bg-dark" id="FILE">
+                                            <a href="{{file_attr[0]}}">{{f_filename}}</a>
+                                            <span class="float-right">
+                                                <a href="{{file_attr[0]}}" download={{f_filename}}>Download</a>
+                                            </span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <li class="list-group-item bg-dark">
+                                    <div class="text-center text-danger">No files avaliable</div>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
