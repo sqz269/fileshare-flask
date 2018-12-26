@@ -18,7 +18,8 @@ A simple file sharing program based on HTTP using flask
 #### API
 + send POST request to the path you want to list. If the path exists the remote will return a JSON contains  
 {"FILENAME": ["FileURLPath", IsTheFileADirectory]} **FILENAME** and **FileURLPath** is string and **IsTheFileADirectory** is a boolean
-+ send POST request to /ShowFileDetail. Will return JSON that contains a list of file properties if the file exists. JSON response example:  
++ send POST request to /ShowFileDetail with JSON that contains {"FILENAME": "", "PATH": ""}. The server will return JSON that contains a list of file properties if the file exists.  
+JSON response example:  
 {  
 "file_name": "Helloworld.py",  
 "file_ext": ".py",  
@@ -29,8 +30,8 @@ A simple file sharing program based on HTTP using flask
 "file_content_type": "Python Script",  
 "full_detail": "Python script, ASCII text executable, with CRLF line terminators",  
 "location": "/pythonfiles/Helloworld.py"  
-}
-file_size: in bytes, last_mod and created date may not be accurate
+}  
+file_size: in **bytes**, last_mod and created date may not be accurate
 
 ##### TODO
 + Add ability to upload file 
