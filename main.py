@@ -141,41 +141,6 @@ def change_dir(path):
     except FileNotFoundError:
         return abort(404)
 
-    """
-    if request.method == "GET":  # Render webpage if it's GET
-        try:
-            target_path = "./static/" + app.config["FTPDIR"] + "/" + path  # Get the relative path for the directory
-            if os.path.isdir(target_path):  # If the requested resource is a directory
-                files = get_list_of_file_with_path_surface(target_path, path)  # Get all file/dir under the requested directory
-                return render_template("index.html",
-                                        files=files,
-                                        currentPath=" /" if not path else " /" + path)
-            else:  # If the requested resource is a File
-                # Send the file to client
-                return send_file(os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + path),
-                                attachment_filename=path.split("/")[-1],
-                                conditional=True)  # Conditional True make it transferer using STATUS 206 (Chuck by chuck)
-        except PermissionError:
-            return abort(403)
-        except FileNotFoundError:
-            return abort(404)
-
-    elif request.method == "POST":  # Else Return a json
-        try:
-            target_path = "./static/" + app.config["FTPDIR"] + "/" + path
-            if os.path.isdir(target_path):
-                files = get_list_of_file_with_path_surface(target_path, path)
-                return jsonify(files)
-            else:
-                return send_file(os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + path),
-                                attachment_filename=path.split("/")[-1],
-                                conditional=True)
-        except PermissionError:
-            return abort(403)
-        except FileNotFoundError:
-            return abort(404)
-        """
-
 
 def serve(ipaddr, port, ftpDir="ftpFiles", debug=False):
     """
