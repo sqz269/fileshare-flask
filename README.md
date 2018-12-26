@@ -17,4 +17,6 @@ A simple file sharing program based on HTTP using flask
 
 ##### TODO
 + Add ability to upload file 
++ Add comments
++ Code cleanup/Refactor
 + <del>Add ability to view file details</del>
