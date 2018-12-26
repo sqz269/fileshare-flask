@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, abort, send_file, jsonify
+from urllib.parse import unquote
 from colorama import init
 import time
 import magic
@@ -39,7 +40,7 @@ def get_file_details():
         file_path_info = request.get_json()
         file_path_browser = file_path_info["PATH"] if file_path_info["PATH"][-1] == "/" else file_path_info["PATH"] + "/"
         file_abs_path = os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + file_path_browser + file_path_info["FILENAME"])
-        if file_path_info["FILENAME"].count("."):
+        if "." in file_path_info["FILENAME"]:
             file_ext = file_path_info["FILENAME"].split(".")[-1]
         else:
             file_ext = "None"
@@ -65,24 +66,40 @@ def get_file_details():
         abort(404)
 
 
-@app.route('/', defaults={'path': ''})
-@app.route("/<path:path>")
+@app.route('/', defaults={'path': ''}, methods=["POST", "GET"])
+@app.route("/<path:path>", methods=["POST", "GET"])
 def change_dir(path):
-    try:
-        target_path = "./static/" + app.config["FTPDIR"] + "/" + path
-        if os.path.isdir(target_path):
-            files = get_list_of_file_with_path_surface(target_path, path)
-            return render_template("index.html", 
-                                    files=files, 
-                                    currentPath=" /" if not path else " /" + path)
-        else:
-            return send_file(os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + path), 
-                            attachment_filename=path.split("/")[-1], 
-                            conditional=True)
-    except PermissionError:
-        return abort(403)
-    except FileNotFoundError:
-        return abort(404)
+    if request.method == "GET":  # Render webpage if it's GET
+        try:
+            target_path = "./static/" + app.config["FTPDIR"] + "/" + path
+            if os.path.isdir(target_path):
+                files = get_list_of_file_with_path_surface(target_path, path)
+                return render_template("index.html", 
+                                        files=files, 
+                                        currentPath=" /" if not path else " /" + path)
+            else:
+                return send_file(os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + path), 
+                                attachment_filename=path.split("/")[-1], 
+                                conditional=True)
+        except PermissionError:
+            return abort(403)
+        except FileNotFoundError:
+            return abort(404)
+
+    elif request.method == "POST":  # Else Return a json
+        try:
+            target_path = "./static/" + app.config["FTPDIR"] + "/" + path
+            if os.path.isdir(target_path):
+                files = get_list_of_file_with_path_surface(target_path, path)
+                return jsonify(files)
+            else:
+                return send_file(os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + path), 
+                                attachment_filename=path.split("/")[-1], 
+                                conditional=True)
+        except PermissionError:
+            return abort(403)
+        except FileNotFoundError:
+            return abort(404)
 
 
 def serve(ipaddr, port, ftpDir="ftpFiles", debug=False):
