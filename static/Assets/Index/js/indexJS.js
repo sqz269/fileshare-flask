@@ -78,8 +78,9 @@ function displayFileInfo(info) {
     $("#detailedInfoData").html(info.full_detail);
     // Replace Open file url
     $("#openFile").attr("href", info.location);
+    $("#openFileNewtab").attr("href", info.location)
     // Show modal
-    $("#fileInfoModal").modal()
+    $("#fileInfoModal").modal();
 }
 
 function getFileInfo(fileName) {
