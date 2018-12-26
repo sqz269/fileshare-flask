@@ -92,4 +92,4 @@ def serve(ipaddr, port, ftpDir="ftpFiles", debug=False):
 
 if __name__ == "__main__":
     # ARGUMENT 1: IP Address, 2: Port
-    serve("192.168.29.219", 80)
+    serve("localhost", 80)

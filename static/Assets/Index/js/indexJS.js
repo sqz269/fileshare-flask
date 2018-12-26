@@ -29,25 +29,22 @@ function readCookie(name) {
 
 
 function switchTheme() {
-    theme_select = document.getElementById("ChangeTheme")
+    theme_select = $("#ChangeTheme")
     if (readCookie("theme") == "dark") {
         toLightTheme();
         document.cookie = "theme=light; expires=Thu, 18 Dec 2037 12:00:00 UTC;path=/";
-        theme_select.innerHTML = "Dark Theme";
+        theme_select.html("Dark Theme");
     }
     else {
         toDarkTheme();
         document.cookie = "theme=dark; expires=Thu, 18 Dec 2037 12:00:00 UTC;path=/";
-        theme_select.innerHTML = "Light Theme";
+        theme_select.html("Light Theme");
     }
     return 0;
 }
 
 function cd_parent() {
-    let current_path = window.location.pathname;
-    let path_split = current_path.split("/");
-    let path_parent = path_split.slice(0, path_split.length - 1);
-    window.location.replace(path_parent.join("/"));
+    window.location.replace("../");
 }
 
 function cd_root() {
@@ -63,24 +60,24 @@ window.onload = function() {
     else {
         if (theme != "dark") {
             toLightTheme();
-            document.getElementById("ChangeTheme").innerHTML = "Dark Theme";
+            $("#ChangeTheme").html("Dark Theme");
         }
     }
 }
 
 function displayFileInfo(info) {
     // Show file info, can be replaced with for loop but too lazy :(
-    document.getElementById("fileNameData").innerHTML = info.file_name;
-    document.getElementById("fileExtData").innerHTML = info.file_ext;
-    document.getElementById("filePathData").innerHTML = info.file_path;
-    document.getElementById("fileLocationData").innerHTML = info.location;
-    document.getElementById("modDateData").innerHTML = info.last_mod;
-    document.getElementById("createDateData").innerHTML = info.created;
-    document.getElementById("fileSizeData").innerHTML = info.file_size + " bytes";
-    document.getElementById("fileTypeData").innerHTML = info.file_type;
-    document.getElementById("detailedInfoData").innerHTML = info.full_detail;
+    $("#fileNameData").html(info.file_name);
+    $("#fileExtData").html(info.file_ext);
+    $("#filePathData").html(info.file_path);
+    $("#fileLocationData").html(info.location);
+    $("#modDateData").html(info.last_mod);
+    $("#createDateData").html(info.created);
+    $("#fileSizeData").html(info.file_size + " bytes");
+    $("#fileTypeData").html(info.file_type);
+    $("#detailedInfoData").html(info.full_detail);
     // Replace Open file url
-    document.getElementById("openFile").href = info.location;
+    $("#openFile").attr("href", info.location);
     // Show modal
     $("#fileInfoModal").modal()
 }
