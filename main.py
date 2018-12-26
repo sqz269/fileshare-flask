@@ -95,10 +95,7 @@ def get_file_details():
         else:  # If there is no dot, no file extention
             file_ext = "None"
 
-        if file_path_info["PATH"] == "/":  # If the URL path is only "/"
-            file_url_location = file_path_info["PATH"] + file_path_info["FILENAME"]  # just do /<fileName>
-        else:
-            file_url_location = file_path_info["PATH"] + "/" + file_path_info["FILENAME"] # If the file is "/blablabla" add "/" then add the filename to it
+        file_url_location = file_path_browser + file_path_info["FILENAME"]
 
         file_info = {
             "file_name": file_path_info["FILENAME"],
