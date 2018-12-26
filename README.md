@@ -39,3 +39,7 @@ file_size: in **bytes**, last_mod and created date may not be accurate
 + <del>Add comments</del>
 + <del>Add file listing API</del>
 + <del>Add ability to view file details</del>
+
+#### UI Preview
+![UIPreviewMainSmall](https://i.imgur.com/n0z58ym.png)
+![UIPreviewFileDetailsSmall](https://i.imgur.com/MUF0QxG.png)
