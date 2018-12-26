@@ -74,7 +74,7 @@ def get_list_of_file_with_path_surface(dir_path, url_location):
         if not url_location:
             file_path = "/" + f
         else:
-            file_path = "/" + url_location + "/" + f
+            file_path = "/" + url_location + f
         file_with_path.update({f : (file_path, os.path.isdir(os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + file_path)))})
     return file_with_path
 
