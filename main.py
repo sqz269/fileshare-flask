@@ -33,10 +33,10 @@ def get_list_of_file_depth(dir_path):
     """
     Deprecated
 
-    Get All files from directory and it's sub directory
+    Get All files from directory and its sub directory
 
     :Args:
-        dir_path (str) A path to directory to list
+        dir_path (str) A path to a directory to list
 
     :Return:
         (dict) {"filename": "file relative path"}
@@ -52,16 +52,16 @@ def get_list_of_file_depth(dir_path):
 
 def get_list_of_file_with_path_surface(dir_path, url_location):
     """
-    List all file & dir under a folder. similar with "ls" in UNIX
+    List all files & directories under a folder. Similar to "ls" in UNIX
 
     :Args:
-        dir_path (str) Path to directory that going to be listed
-        url_location (str)  A URL location used to point to the file (The file's parent dir's URL Path)
+        dir_path (str) Path to a directory that is going to be listed
+        url_location (str)  A URL location used to point to the file (The file's parent directory's URL path)
 
     :Return:
         (dict) {<FileName>: (<FilePath>, <IsDirectory>)}
                 <FileName> (string);
-                <FilePath> (String): URL Path to the file;
+                <FilePath> (String): URL path to the file;
                 <IsDirectory> (Boolean): Is the file a directory;
 
     :Raise:
@@ -82,7 +82,7 @@ def get_list_of_file_with_path_surface(dir_path, url_location):
 @app.route("/ShowFileDetail", methods=["POST"])
 def get_file_details():
     """
-    Get the file properties/Metadata from a URL provided for the file
+    Get the file properties/metadata from a URL provided for the file
     """
     try:
         file_path_info = request.get_json()  # Posted JSON {"PATH": <URLPath>, "FILENAME": <NameOfTheFile>}
@@ -125,11 +125,11 @@ def change_dir(path):
         target_path = "./static/" + app.config["FTPDIR"] + "/" + path  # Get the relative path for the directory
         if os.path.isdir(target_path):   # If the requested resource is a directory
             files = get_list_of_file_with_path_surface(target_path, path) # Get all file/dir under the requested directory
-            if request.method == "GET": # Render webpage is it's GET
+            if request.method == "GET": # Render webpage if it's GET
                 return render_template("index.html",
                                         files=files,
                                         currentPath=" /" if not path else " /" + path)
-            elif request.method == "POST":
+            elif request.method == "POST": # Else return a JSON
                 return jsonify(files)
         else:  # If the requested resource is a file
             # Send the file to clinet
