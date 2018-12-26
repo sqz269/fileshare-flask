@@ -1,12 +1,12 @@
-# ftp-flask
-a simple FTP server made using flask
+# fileshare-flask
+a simple file sharing program based on HTTP using flask
 
 #### Setting up
 + Edit main.py, at bottom of the file, replace serve()'s arguments with your own IP/Port (use WSGI if need access outside of LAN; See [here](http://flask.pocoo.org/docs/1.0/deploying/) for more details)
 + Then make sure you installed **flask**, **colorama**, **magic** (if not install using "pip install flask colorama python-magic")
 + then run the python file
 
-#### Changing ftp directory
+#### Changing file sharing directory
 + Under ./static/ftpFiles/ is where the shared file will be stored by default
 + to change the file store location: Edit main.py look for serve() function and replace the optional argument "ftpDir" to your desire (This location must be under "./static/")
 
