@@ -74,7 +74,7 @@ function displayFileInfo(info) {
     $("#modDateData").html(info.last_mod);
     $("#createDateData").html(info.created);
     $("#fileSizeData").html(info.file_size + " bytes");
-    $("#fileTypeData").html(info.file_type);
+    $("#fileContentTypeData").html(info.file_content_type);
     $("#detailedInfoData").html(info.full_detail);
     // Replace Open file url
     $("#openFile").attr("href", info.location);

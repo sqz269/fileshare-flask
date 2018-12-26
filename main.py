@@ -54,7 +54,7 @@ def get_file_details():
             "last_mod": str(time.ctime(os.path.getmtime(file_abs_path))),
             "created": str(time.ctime(os.path.getctime(file_abs_path))),
             "file_size": str(os.path.getsize(file_abs_path)),
-            "file_type": magic.from_file(file_abs_path).split(",")[0],
+            "file_content_type": magic.from_file(file_abs_path).split(",")[0],
             "full_detail": magic.from_file(file_abs_path),
             "location": file_url_location
         }
