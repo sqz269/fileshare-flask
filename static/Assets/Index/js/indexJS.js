@@ -62,7 +62,7 @@ window.onload = function() {
     }
     else {
         if (theme != "dark") {
-            to_light_theme();
+            toLightTheme();
             document.getElementById("ChangeTheme").innerHTML = "Dark Theme";
         }
     }
