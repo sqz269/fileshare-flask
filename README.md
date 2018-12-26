@@ -1,10 +1,10 @@
 # fileshare-flask
-a simple file sharing program based on HTTP using flask
+A simple file sharing program based on HTTP using flask
 
 #### Setting up
 + Edit main.py, at bottom of the file, replace serve()'s arguments with your own IP/Port (use WSGI if need access outside of LAN; See [here](http://flask.pocoo.org/docs/1.0/deploying/) for more details)
-+ Then make sure you installed **flask**, **colorama**, **magic** (if not install using "pip install flask colorama python-magic")
-+ then run the python file
++ Make sure you have installed **flask**, **colorama**, **magic** (if not install using "pip install flask colorama python-magic-bin")
++ Then run the python file main.py
 
 #### Changing file sharing directory
 + Under ./static/ftpFiles/ is where the shared file will be stored by default
