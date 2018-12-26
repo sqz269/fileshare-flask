@@ -72,7 +72,7 @@ def change_dir(path):
         target_path = "./static/" + app.config["FTPDIR"] + "/" + path
         if os.path.isdir(target_path):
             files = get_list_of_file_with_path_surface(target_path, path)
-            return render_template("index.min.html", 
+            return render_template("index.html", 
                                     files=files, 
                                     currentPath=" /" if not path else " /" + path)
         else:
