@@ -1,11 +1,11 @@
-function to_light_theme() {
+function toLightTheme() {
     $(".bg-secondary").toggleClass("bg-secondary bg-light")
     $(".bg-dark").toggleClass("bg-dark bg-white")
     $(".text-light").toggleClass("text-light text-dark")
 }
 
 
-function to_dark_theme() {
+function toDarkTheme() {
     $(".bg-white").toggleClass("bg-white bg-dark")
     $(".bg-light").toggleClass("bg-light bg-secondary")
     $(".text-dark").toggleClass("text-dark text-light")
@@ -28,15 +28,15 @@ function readCookie(name) {
 }
 
 
-function switch_theme() {
+function switchTheme() {
     theme_select = document.getElementById("ChangeTheme")
     if (readCookie("theme") == "dark") {
-        to_light_theme();
+        toLightTheme();
         document.cookie = "theme=light; expires=Thu, 18 Dec 2037 12:00:00 UTC;path=/";
         theme_select.innerHTML = "Dark Theme";
     }
     else {
-        to_dark_theme();
+        toDarkTheme();
         document.cookie = "theme=dark; expires=Thu, 18 Dec 2037 12:00:00 UTC;path=/";
         theme_select.innerHTML = "Light Theme";
     }
@@ -54,11 +54,6 @@ function cd_root() {
     window.location.replace("/");
 }
 
-function test() {
-    console.log("Test")
-}
-
-
 window.onload = function() {
     // LOAD User settings
     let theme = readCookie("theme");
@@ -71,4 +66,38 @@ window.onload = function() {
             document.getElementById("ChangeTheme").innerHTML = "Dark Theme";
         }
     }
+}
+
+function displayFileInfo(info) {
+    // Show file info, can be replaced with for loop but too lazy :(
+    document.getElementById("fileNameData").innerHTML = info.file_name;
+    document.getElementById("fileExtData").innerHTML = info.file_ext;
+    document.getElementById("filePathData").innerHTML = info.file_path;
+    document.getElementById("fileLocationData").innerHTML = info.location;
+    document.getElementById("modDateData").innerHTML = info.last_mod;
+    document.getElementById("createDateData").innerHTML = info.created;
+    document.getElementById("fileSizeData").innerHTML = info.file_size + " bytes";
+    document.getElementById("fileTypeData").innerHTML = info.file_type;
+    document.getElementById("detailedInfoData").innerHTML = info.full_detail;
+    // Replace Open file url
+    document.getElementById("openFile").href = info.location;
+    // Show modal
+    $("#fileInfoModal").modal()
+}
+
+function getFileInfo(fileName) {
+    let current_path = window.location.pathname;
+    // Sending and receiving data in JSON format using POST method
+    let xhr = new XMLHttpRequest();
+    let url = window.location.protocol + "//" + window.location.hostname + "/ShowFileDetail";
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            displayFileInfo(json);
+        }
+    };
+    var data = JSON.stringify({"PATH": current_path, "FILENAME": fileName});
+    xhr.send(data);
 }
