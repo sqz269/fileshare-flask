@@ -121,6 +121,27 @@ def change_dir(path):
     """
     List the directory requested from URL
     """
+    try:
+        target_path = "./static/" + app.config["FTPDIR"] + "/" + path  # Get the relative path for the directory
+        if os.path.isdir(target_path):   # If the requested resource is a directory
+            files = get_list_of_file_with_path_surface(target_path, path) # Get all file/dir under the requested directory
+            if request.method == "GET": # Render webpage is it's GET
+                return render_template("index.html",
+                                        files=files,
+                                        currentPath=" /" if not path else " /" + path)
+            elif request.method == "POST":
+                return jsonify(files)
+        else:  # If the requested resource is a file
+            # Send the file to clinet
+            return send_file(os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + path),
+                            attachment_filename=path.split("/")[-1],
+                            conditional=True) # Conditional True makes it transfer using STATUS 206 (Chunk by chunk) 
+    except PermissionError:
+        return abort(403)
+    except FileNotFoundError:
+        return abort(404)
+
+    """
     if request.method == "GET":  # Render webpage if it's GET
         try:
             target_path = "./static/" + app.config["FTPDIR"] + "/" + path  # Get the relative path for the directory
@@ -153,6 +174,7 @@ def change_dir(path):
             return abort(403)
         except FileNotFoundError:
             return abort(404)
+        """
 
 
 def serve(ipaddr, port, ftpDir="ftpFiles", debug=False):
