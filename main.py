@@ -86,10 +86,10 @@ def get_file_details():
     """
     try:
         file_path_info = request.get_json()  # Posted JSON {"PATH": <URLPath>, "FILENAME": <NameOfTheFile>}
+        file_path_info["PATH"] = unquote(file_path_info["PATH"])  # Unescape URL sequence to normal characters
         file_path_browser = file_path_info["PATH"] if file_path_info["PATH"][-1] == "/" else file_path_info["PATH"] + "/"
         #  ^ If PATH provided look like "/blablabla/" then don't add / to the end of it, if it looks like "/blabla" then add "/" to the end to make it "/blabla/"
         file_abs_path = os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + file_path_browser + file_path_info["FILENAME"])
-
         if "." in file_path_info["FILENAME"]:  # if there is a . in the file name then assume the things behind the . is the file extention
             file_ext = file_path_info["FILENAME"].split(".")[-1]
         else:  # If there is no dot, no file extention
