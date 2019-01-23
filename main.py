@@ -103,7 +103,7 @@ def upload_file():
         return jsonify({"STATUS": 1, "Details": "Destination is not specified"})
 
     dst_dir_abs_path = os.path.abspath("./static/" + app.config["FILEDIR"] + "/" + dst_dir)
-    if dst_dir_abs_path[-1] != "/" or "\\":
+    if dst_dir_abs_path[-1] != "/" or dst_dir_abs_path[-1] != "\\":
         dst_dir_abs_path += "/"
 
     files = request.files.getlist("File")
