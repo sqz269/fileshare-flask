@@ -16,8 +16,10 @@ A simple file sharing program based on HTTP using flask
 + **ImportError: failed to find libmagic. Check your installation** is caused by incomplete python-magic installation, do "pip install libmagic FFMPEG" and try again, if problem persists try to download .whl file from [here](https://pip.aws.lolatravel.com/pip/dev/+simple/python-magic-bin) select the platform you needed and install. (Detailed install instructions can be found [here](https://stackoverflow.com/questions/27885397/how-do-i-install-a-python-package-with-a-whl-file))
 
 #### API
+##### Listing Dirctories
 + send POST request to the path you want to list. If the path exists the remote will return a JSON contains  
-{"FILENAME": ["FileURLPath", IsTheFileADirectory]} **FILENAME** and **FileURLPath** is string and **IsTheFileADirectory** is a boolean
+{"FILENAME": ["FileURLPath", IsTheFileADirectory]} **FILENAME** and **FileURLPath** is string and **IsTheFileADirectory** is a boolean  
+##### Get File Details
 + send POST request to /ShowFileDetail with JSON that contains {"FILENAME": "", "PATH": ""}. The server will return JSON that contains a list of file properties if the file exists.  
 JSON response example:  
 {  
@@ -32,10 +34,14 @@ JSON response example:
 "location": "/pythonfiles/Helloworld.py"  
 }  
 file_size: in **bytes**, last_mod and created date may not be accurate
+##### Uploading files
++ Uploading files by sending a POST request to /Upload with a url parameter dst (dst must be a directory and encoded) with file stream 
++ **Post to URL look like this: "/Upload?dst=%2F"** where %2F is encoded form of "/"
 
 ##### TODO
-+ Add ability to upload file 
-+ Code cleanup/Refactor
++ Add Permission
++ <del>Add ability to upload file </del>
++ <del>Code cleanup/Refactor</del>
 + <del>Add comments</del>
 + <del>Add file listing API</del>
 + <del>Add ability to view file details</del>
