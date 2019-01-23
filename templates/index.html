@@ -10,9 +10,21 @@
     </head>
 
     <body class="bg-secondary" id="body">
+        <div id="fileUploadSuccessBanner" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+            Your file has been successfully uploaded. <strong><a href=".">Reload Page</a></strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
         <nav class="navbar navbar-light">
             <div class="d-flex p-2">
                 <span class="float-left">
+                    <button type="button" class="btn btn-link btn-sm border border-primary" data-toggle="modal", data-target="#UploadFileModal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                            <path d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                        </svg>
+                    </button>
                     <button type="button" onclick="javascript:cd_parent();" class="btn btn-link btn-sm border border-primary" data-toggle="tooltip" data-placement="top" title="Return to Parent Dir">
                         <svg xmls="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
                             <path fill="none" d="M0 0h24v24H0V0z"/>
@@ -32,8 +44,15 @@
             </div>
                 <span class="float-left">
                     <a id="ChangeTheme" class="text-light" href="javascript:switchTheme();">Light Theme</a>
+                    <a id="FileViewLarge" class="text-light" href="javascript:"></a>  <!-- TODO -->
                 </span>
             </nav>
+        <div id="UploadInfoFileView" class="d-none">
+            <span>Upload Progress:</span>
+            <div class="progress">
+                <div id="UploadProgressFileView" class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+            </div>
+        </div>
         <!-- FILES -->
         <div class="row">
             <div class="panel-group col-sm" id="Files">
@@ -78,7 +97,7 @@
             </div>
         </div>
         <!-- END FILES -->
-        <!-- Modal -->
+        <!-- Modal File info-->
         <div class="modal fade" id="fileInfoModal" tabindex="-1" role="dialog" aria-labelledby="fileInfo" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content bg-dark">
@@ -134,6 +153,39 @@
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                         <a href="#" class="btn btn-default" target="_blank" id="openFileNewtab">Open File (New Tab)</a>
                         <a href="#" class="btn btn-default" id="openFile">Open File</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal Upload -->
+        <div class="modal fade"9 id="UploadFileModal" tabindex="-1" role="dialog" aria-labelledby="UploadFileModalTitle" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="UploadFileModalTitle">Upload File</h5>  <!-- Check if anyfiles selected before upload -->
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="uploadFileForm">
+                            <div class="form-group">
+                                <div class="custom-file">
+                                    <input name="File" type="file" class="form-control" id="uploadFileInput" aria-describedby="uploadFileInput" onchange="javascript:setUploadFileLabel();" multiple>
+                                    <label class="custom-file-label mb-3" id="fileToUpload" for="uploadFileInput">Choose file</label>
+                                </div>
+                            </div>
+                            <input id="uploadFileSubmit" type="submit" class="btn btn-primary btn-md btn-block" value="Upload">
+                        </form>
+                        <div id="UploadInfo" class="d-none">
+                            <span>Upload Progress:</span>
+                            <div class="progress">
+                                <div id="UploadProgress" class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>

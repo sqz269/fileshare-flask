@@ -1,16 +1,25 @@
 from flask import Flask, render_template, request, abort, send_file, jsonify
+from werkzeug.utils import secure_filename
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
 from urllib.parse import unquote
 from colorama import init
+from hashlib import sha256
 import time
 import magic
 import os
 import platform
 import sys
 
+# Path operations possibly contains vulnerability
+
 app = Flask(__name__)
 init()  # Allow Colors on windows based Terminal
 
-# TODO: WRITE COMMENTS
+
+# class User(db.Model):
+
+
 
 def creation_date(path_to_file):
     """
@@ -28,6 +37,7 @@ def creation_date(path_to_file):
             # We're probably on Linux. No easy way to get creation dates here,
             # so we'll settle for when its content was last modified.
             return stat.st_mtime
+
 
 def get_list_of_file_depth(dir_path):
     """
@@ -75,8 +85,52 @@ def get_list_of_file_with_path_surface(dir_path, url_location):
             file_path = "/" + f
         else:
             file_path = "/" + url_location + f
-        file_with_path.update({f : (file_path, os.path.isdir(os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + file_path)))})
+        file_with_path.update({f : (file_path, os.path.isdir(os.path.abspath("./static/" + app.config["FILEDIR"] + "/" + file_path)))})
     return file_with_path
+
+
+@app.route("/Login", methods=["POST"])
+def auth():
+    pass
+
+
+@app.route("/Upload", methods=["POST"])  # RESTFUL
+def upload_file():
+    # check if the post request has the file part
+    dst_dir = request.args.get("dst")
+
+    if not dst_dir:
+        return jsonify({"STATUS": 1, "Details": "Destination is not specified"})
+
+    dst_dir_abs_path = os.path.abspath("./static/" + app.config["FILEDIR"] + "/" + dst_dir)
+    if dst_dir_abs_path[-1] != "/" or "\\":
+        dst_dir_abs_path += "/"
+
+    files = request.files.getlist("File")
+    for file in files:
+        if not app.config["SECUREFILENAME"]:
+            file_name = file.filename
+        else:
+            file_name = secure_filename(file.filename)
+        dst_abs_path = dst_dir_abs_path + file_name
+        file.save(dst_abs_path)
+
+    return ""
+
+
+@app.route("/DeleteFile", methods=["DELETE"])
+def delete_file():
+    file_path = request.get_json()  # Posted JSON {"PATH": <FileURL>}
+    # TODO Check user Privilege return 403 (int) (Json) If no privilege to delete else return 0 (int) json form
+    try:
+        os.remove(os.path.abspath(file_path))
+        return jsonify({"Status_code": 0, "Detail": "Success"})
+    except PermissionError:
+        return jsonify({"Status_code": 1, "Detail": "Unable to delete file, Access denied"})
+    except FileNotFoundError:
+        return jsonify({"Status_code": 2, "Detail": "Unable to delete file, Target file does not exist"}) 
+    except Exception as error:
+        return jsonify({"Status_code": 3, "Detail": "Unable to delete file, An Exception occurred: {}".format(error)})
 
 
 @app.route("/ShowFileDetail", methods=["POST"])
@@ -89,7 +143,7 @@ def get_file_details():
         file_path_info["PATH"] = unquote(file_path_info["PATH"])  # Unescape URL sequence to normal characters
         file_path_browser = file_path_info["PATH"] if file_path_info["PATH"][-1] == "/" else file_path_info["PATH"] + "/"
         #  ^ If PATH provided look like "/blablabla/" then don't add / to the end of it, if it looks like "/blabla" then add "/" to the end to make it "/blabla/"
-        file_abs_path = os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + file_path_browser + file_path_info["FILENAME"])
+        file_abs_path = os.path.abspath("./static/" + app.config["FILEDIR"] + "/" + file_path_browser + file_path_info["FILENAME"])
         if "." in file_path_info["FILENAME"]:  # if there is a . in the file name then assume the things behind the . is the file extention
             file_ext = file_path_info["FILENAME"].split(".")[-1]
         else:  # If there is no dot, no file extention
@@ -119,10 +173,10 @@ def get_file_details():
 @app.route("/<path:path>", methods=["POST", "GET"])
 def change_dir(path):
     """
-    List the directory requested from URL
+    List the directory requested from URL77
     """
     try:
-        target_path = "./static/" + app.config["FTPDIR"] + "/" + path  # Get the relative path for the directory
+        target_path = "./static/" + app.config["FILEDIR"] + "/" + path  # Get the relative path for the directory
         if os.path.isdir(target_path):   # If the requested resource is a directory
             files = get_list_of_file_with_path_surface(target_path, path) # Get all file/dir under the requested directory
             if request.method == "GET": # Render webpage if it's GET
@@ -132,8 +186,8 @@ def change_dir(path):
             elif request.method == "POST": # Else return a JSON
                 return jsonify(files)
         else:  # If the requested resource is a file
-            # Send the file to clinet
-            return send_file(os.path.abspath("./static/" + app.config["FTPDIR"] + "/" + path),
+            # Send the file to client
+            return send_file(os.path.abspath("./static/" + app.config["FILEDIR"] + "/" + path),
                             attachment_filename=path.split("/")[-1],
                             conditional=True) # Conditional True makes it transfer using STATUS 206 (Chunk by chunk) 
     except PermissionError:
@@ -142,7 +196,7 @@ def change_dir(path):
         return abort(404)
 
 
-def serve(ipaddr, port, ftpDir="ftpFiles", debug=False):
+def serve(ipaddr, port, ftpDir="ftpFiles", secure_upload_filename=True, debug=False):
     """
     Start the server
 
@@ -150,12 +204,16 @@ def serve(ipaddr, port, ftpDir="ftpFiles", debug=False):
         ipaddr (str) IP address the server should bind to
         port (int)  Port number the server should listening at
         ftpDir (str)  Where will be the shared file stored (MUST be under ./static)
+        enable_register (bool) true if allow anyone to register
         debug (Bool)  Debug Mode
     """
-    app.config.update({"FTPDIR": ftpDir})
-    app.run(ipaddr, port)
+    app.config.update({"FILEDIR": ftpDir})
+    app.config.update({"SECUREFILENAME": secure_upload_filename})
+    if not secure_upload_filename:
+        app.logger.warning("SECURE UPLOAD FILE NAME IS DISABLED. THIS MIGHT CAUSE UNEXPECTED CONSEQUENCES")
+    app.run(ipaddr, port, debug=debug)
 
 
 if __name__ == "__main__":
     # ARGUMENT 1: IP Address, 2: Port
-    serve("localhost", 80)
+    serve("localhost", 80, debug=True, secure_upload_filename=True, )
