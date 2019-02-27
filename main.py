@@ -5,25 +5,17 @@ from flask_bcrypt import Bcrypt
 from urllib.parse import unquote
 from base64 import b64encode
 from colorama import init
-from hashlib import sha256
 import jwt
 import time
 import magic
 import os
-import platform
-import sys
+# import platform
 
 # Path operations possibly contains vulnerability
 
 app = Flask(__name__)
-app.config.update({"SQLALCHEMY_DATABASE_URI": "sqlite:///C:/Users/Shangqing/Desktop/asdf.db"})
-# b64encode(os.urandom(15))
-# WARNING: CHANGE THE SECRET KEY TO YOUR OWN
-app.config.update({"SECRET_KEY": "kX5UsqycEGEUCjMI2tB7SVjjnr7BY6A4".encode("utf-8")})
 bcrypt = Bcrypt(app=app)
 db = SQLAlchemy(app)
-
-init()  # Allow Colors on windows Terminal (cmd/powershell)
 
 
 class User(db.Model):
@@ -66,7 +58,7 @@ def database_delete_user(username):
 def database_user_auth(username, password_plain_text):
     """
     Check if the user have the correct credentials to login
-    
+
     :Args:
         username (str) the username to login
         password (str) the password
@@ -246,7 +238,7 @@ def delete_file():
     except PermissionError:
         return jsonify({"STATUS": 1, "Details": "Unable to delete file, Access denied"})
     except FileNotFoundError:
-        return jsonify({"STATUS": 2, "Details": "Unable to delete file, Target file does not exist"}) 
+        return jsonify({"STATUS": 2, "Details": "Unable to delete file, Target file does not exist"})
     except Exception as error:
         return jsonify({"STATUS": 3, "Details": "Unable to delete file, An Exception occurred: {}".format(error)})
 
@@ -307,24 +299,30 @@ def change_dir(path):
             # Send the file to client
             return send_file(os.path.abspath("./static/" + app.config["FILEDIR"] + "/" + path),
                             attachment_filename=path.split("/")[-1],
-                            conditional=True) # Conditional True makes it transfer using STATUS 206 (Chunk by chunk) 
+                            conditional=True) # Conditional True makes it transfer using STATUS 206 (Chunk by chunk)
     except PermissionError:
         return abort(403)
     except FileNotFoundError:
         return abort(404)
 
 
-def config(fileDir="ftpFiles", secure_upload_filename=True, upload_auth_required=True):
+def config(database_uri, secret_key, fileDir="ftpFiles", secure_upload_filename=True, upload_auth_required=True):
     """
     Config the server
 
     :Args:
-        ipaddr (str) IP address the server should bind to
-        port (int)  Port number the server should listening at
+        database_path (str) uri points to the database to store user login credentials
+        secret_key (str) key will be used to encrypt the server's JWT, will be encoded to utf-8
         ftpDir (str)  Where will be the shared file stored (MUST be under ./static)
         enable_register (bool) true if allow anyone to register
         debug (Bool)  Debug Mode
     """
+    init()  # Allow Colors on windows Terminal (cmd/powershell)
+    app.config.update({"SQLALCHEMY_DATABASE_URI": database_uri})
+    # b64encode(os.urandom(15))
+    # WARNING: CHANGE THE SECRET KEY TO YOUR OWN
+    app.config.update({"SECRET_KEY": secret_key.encode("utf-8")})
+
     app.config.update({"FILEDIR": fileDir})
     app.config.update({"SECUREFILENAME": secure_upload_filename})
     app.config.update({"UPLOAD_AUTH_REQUIRED": upload_auth_required})
@@ -343,8 +341,7 @@ def serve(ipaddr, port, debug=False):
     """
     app.run(ipaddr, port, debug=debug)
 
-
-config()
+config("sqlite:///C:/Users/Shangqing/Desktop/asdf.db", "kX5UsqycEGEUCjMI2tB7SVjjnr7BY6A4")
 
 if __name__ == "__main__":
     serve("localhost", 80, debug=True)

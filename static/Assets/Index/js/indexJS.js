@@ -1,26 +1,26 @@
 function toLightTheme() {
-    $(".bg-secondary").toggleClass("bg-secondary bg-light")
-    $(".bg-dark").toggleClass("bg-dark bg-white")
-    $(".text-light").toggleClass("text-light text-dark")
+    $(".bg-secondary").toggleClass("bg-secondary bg-light");
+    $(".bg-dark").toggleClass("bg-dark bg-white");
+    $(".text-light").toggleClass("text-light text-dark");
 }
 
 
 function toDarkTheme() {
-    $(".bg-white").toggleClass("bg-white bg-dark")
-    $(".bg-light").toggleClass("bg-light bg-secondary")
-    $(".text-dark").toggleClass("text-dark text-light")
+    $(".bg-white").toggleClass("bg-white bg-dark");
+    $(".bg-light").toggleClass("bg-light bg-secondary");
+    $(".text-dark").toggleClass("text-dark text-light");
 }
 
 
 function readCookie(name) {
     var nameEQ = name + "=";
-    var ca = document.cookie.split(';');
+    var ca = document.cookie.split(";");
     for(var i=0;i < ca.length;i++) {
         var c = ca[i];
-        while (c.charAt(0)==' ') {
+        while (c.charAt(0)===" ") {
             c = c.substring(1,c.length);
         }
-        if (c.indexOf(nameEQ) == 0) {
+        if (c.indexOf(nameEQ) === 0) {
             return c.substring(nameEQ.length,c.length);
         }
     }
@@ -29,25 +29,25 @@ function readCookie(name) {
 
 
 function switchTheme() {
-    theme_select = $("#ChangeTheme")
+    let themeSelect = $("#ChangeTheme");
     if (readCookie("theme") == "dark") {
         toLightTheme();
         document.cookie = "theme=light; expires=Thu, 18 Dec 2037 12:00:00 UTC;path=/";
-        theme_select.html("Dark Theme");
+        themeSelect.html("Dark Theme");
     }
     else {
         toDarkTheme();
         document.cookie = "theme=dark; expires=Thu, 18 Dec 2037 12:00:00 UTC;path=/";
-        theme_select.html("Light Theme");
+        themeSelect.html("Light Theme");
     }
     return 0;
 }
 
-function cd_parent() {
+function cdParent() {
     window.location.replace("../");
 }
 
-function cd_root() {
+function cdRoot() {
     window.location.replace("/");
 }
 
@@ -60,15 +60,14 @@ window.onload = function() {
     if (theme == null) {
         document.cookie = "theme=dark; expires=Thu, 18 Dec 2037 12:00:00 UTC;path=/";
     }
-    else {
-        if (theme != "dark") {
+    else if (theme !== "dark"){
             toLightTheme();
             $("#ChangeTheme").html("Dark Theme");
-        }
     }
+
 }
 
-function upload_start_change(){
+function uploadStartChange(){
     $("#UploadInfo").toggleClass("d-none d-block"); // show upload progress bar
     $("#UploadProgress").addClass("progress-bar-animated");  // Animate progress bar
 
@@ -79,7 +78,7 @@ function upload_start_change(){
     $("#uploadFileInput").attr("disabled", true);  // disable select file while uploading file
 }
 
-function upload_finish_change_success() {
+function uploadFinishChangeSuccess() {
     $("#fileUploadSuccessBanner").toggleClass("d-none d-show");
 
     $("#UploadInfo").toggleClass("d-block d-none"); // hide upload progress bar
@@ -88,92 +87,85 @@ function upload_finish_change_success() {
     $("#UploadInfoFileView").toggleClass("d-block d-none"); // hide upload progress bar on the file view page
     $("#UploadProgressFileView").addClass("progress-bar-animated");  // remove Animate progress bar
 
-    $('#UploadProgress').attr('aria-valuenow', 0).css('width', 0 + '%').text(0 + '%');  // Reset the progress bar
+    $("#UploadProgress").attr("aria-valuenow", 0).css("width", 0 + "%").text(0 + "%");  // Reset the progress bar
     $("#uploadFileInput").attr("disabled", false);  // disable select file while uploading file
     $("#uploadFileSubmit").removeClass("disabled").attr("value", "Upload");  // Disable upload button
 }
 
-function upload_finish_change_failed() {
+function uploadFinishChangeFailed() {
     $("#UploadInfo").toggleClass("d-block d-none"); // hide upload progress bar
     $("#UploadProgress").removeClass("progress-bar-animated"); // remove animation on the progress bar
 
     $("#UploadInfoFileView").toggleClass("d-block d-none"); // hide upload progress bar on the file view page
     $("#UploadProgressFileView").addClass("progress-bar-animated");  // remove Animate progress bar
 
-    $('#UploadProgress').attr('aria-valuenow', 0).css('width', 0 + '%').text(0 + '%');  // Reset the progress bar
+    $("#UploadProgress").attr("aria-valuenow", 0).css("width", 0 + "%").text(0 + "%");  // Reset the progress bar
     $("#uploadFileInput").attr("disabled", false);  // disable select file while uploading file
     $("#uploadFileSubmit").removeClass("disabled").attr("value", "Upload");  // Disable upload button
 }
 
-function upload_fished_modal_change_failed(errmsg) {
+function uploadFinishModalChangeFailed(errmsg) {
     $("#UploadStatusFailedText").html("Upload Failed: " +errmsg);
     $("#UploadStatusFailedText").toggleClass("d-none");
-    upload_finish_change_failed();
+    uploadFinishChangeFailed();
 }
 
 $(document).ready(function() {  // Credit to https://www.youtube.com/watch?v=f-wXTpbNWoM
-	$('#uploadFileForm').on('submit', function(event) {
+	$("#uploadFileForm").on("submit", function(event) {
 		event.preventDefault();
 
-        var formData = new FormData($('form')[0]);
+        var formData = new FormData($("form")[0]);
 
-        upload_start_change();
+        uploadStartChange();
 
-        let dst = encodeURIComponent(window.location.pathname)
+        let dst = encodeURIComponent(window.location.pathname);
 
 		$.ajax({
 			xhr : function() {
 				var xhr = new window.XMLHttpRequest();
 
-				xhr.upload.addEventListener('progress', function(e) {
+				xhr.upload.addEventListener("progress", function(e) {
 
 					if (e.lengthComputable) {
 
-						console.log('Bytes Loaded: ' + e.loaded);
-						console.log('Total Size: ' + e.total);
-						console.log('Percentage Uploaded: ' + (e.loaded / e.total))
+						// console.log("Bytes Loaded: " + e.loaded);
+						// console.log("Total Size: " + e.total);
+						// console.log("Percentage Uploaded: " + (e.loaded / e.total))
 
 						let percent = Math.round((e.loaded / e.total) * 100);
 
-                        $('#UploadProgress').attr('aria-vawaluenow', percent).css('width', percent + '%').text(percent + '%');
-                        $('#UploadProgressFileView').attr('aria-vawaluenow', percent).css('width', percent + '%').text(percent + '%');
+                        $("#UploadProgress").attr("aria-vawaluenow", percent).css("width", percent + "%").text(percent + "%");
+                        $("#UploadProgressFileView").attr("aria-vawaluenow", percent).css("width", percent + "%").text(percent + "%");
 					}
 
 				});
 
 				return xhr;
 			},
-			type : 'POST',
-			url : '/Upload?dst=' + dst,
+			type : "POST",
+			url : "/Upload?dst=" + dst,
 			data : formData,
 			processData : false,
 			contentType : false,
 			success : function() {
-                upload_finish_change_success();
+                uploadFinishChangeSuccess();
+                console.log("Operation Completed :" + xhr.statusCode)
             },
             complete: function(xhr, textStatus) {
-                if (xhr.status == 200) {
-                    console.log("Upload Complete"); 
-
-                }
-                else if (xhr.status == 401) {
-                    console.log("Authorization Required");
-                    upload_fished_modal_change_failed("Authorization Required")
-                }
-                else if (xhr.status == 500) {
-                    upload_fished_modal_change_failed("Server Unable To Handle Requests")
-                }
-                else if (xhr.status == 0){
-                    upload_fished_modal_change_failed("Request Aborted By Remote")
-                }
-                else {
-                    console.log("Failed to complete operation. Error: " + xhr.status);
-                    upload_fished_modal_change_failed("Status Code: "+ xhr.status)
-                }
+                console.log("Operation Completed :" + xhr.statusCode)
             },
             statusCode: {
                 401: function(xhr) {
-                  if(window.console) console.log(xhr.responseText);
+                    uploadFinishModalChangeFailed("Authorization Required")
+                    console.log("Operation Completed :" + xhr.statusCode)
+                },
+                500: function(xhr) {
+                    uploadFinishModalChangeFailed("Server Unable To Handle Requests")
+                    console.log("Operation Completed :" + xhr.statusCode)
+                },
+                0: function(xhr) {
+                    uploadFinishModalChangeFailed("Request Aborted By Server")
+                    console.log("Operation Completed :" + xhr.statusCode)
                 }
               }
 		});
@@ -185,7 +177,7 @@ $(document).ready(function() {  // Credit to https://www.youtube.com/watch?v=f-w
 
 function user_login()
 {
-    let current_path = window.location.pathname;
+    let currentPath = window.location.pathname;
     // Sending and receiving data in JSON format using POST method
     let xhr = new XMLHttpRequest();
     let url = window.location.protocol + "//" + window.location.hostname + "/Login";
@@ -193,9 +185,14 @@ function user_login()
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-            var json = JSON.parse(xhr.responseText);
-            $("#loginStatusFail").toggleClass("d-none d-show");
-            console.log(json);
+            var authStatus = JSON.parse(xhr.responseText);
+            if (authStatus["STATUS"] == 0){
+                $("#loginStatusSuccess").toggleClass("d-none d-show")
+            }
+            else {
+                $("#loginStatusFail").toggleClass("d-none d-show");
+            }
+            console.log(authStatus);
         }
     };
 
@@ -205,10 +202,11 @@ function user_login()
     if (username == "" || password == ""){
         $("#loginStatusFail").toggleClass("d-none d-show");
     }
-
-    var data = JSON.stringify({"USERNAME": username, "PASSWORD": password});
-    console.log(data)
-    xhr.send(data);
+    else {
+        var data = JSON.stringify({"USERNAME": username, "PASSWORD": password});
+        console.log(data)
+        xhr.send(data);
+    }
 }
 
 
@@ -231,7 +229,7 @@ function displayFileInfo(info) {
 }
 
 function getFileInfo(fileName) {
-    let current_path = window.location.pathname;
+    let currentPath = window.location.pathname;
     // Sending and receiving data in JSON format using POST method
     let xhr = new XMLHttpRequest();
     let url = window.location.protocol + "//" + window.location.hostname + "/ShowFileDetail";
@@ -243,36 +241,36 @@ function getFileInfo(fileName) {
             displayFileInfo(json);
         }
     };
-    var data = JSON.stringify({"PATH": current_path, "FILENAME": fileName});
+    var data = JSON.stringify({"PATH": currentPath, "FILENAME": fileName});
     xhr.send(data);
 }
 
 function setUploadFileLabel() 
 {
-    let file_input_element = document.getElementById("uploadFileInput");
-    if ("files" in file_input_element) 
+    let fileInputElement = document.getElementById("uploadFileInput");  // get file input element
+    if ("files" in fileInputElement)   // if there are files selected
     {
-        if (!file_input_element.files.length)
+        if (!fileInputElement.files.length) // if no files are selected
         {
             $("#fileToUpload").html("Choose file");
         }
-        else
+        else  // if files are selected
         {
             let total_files = 0;
-            for (let i = 0; i < file_input_element.files.length; i++)
+            for (let i = 0; i < fileInputElement.files.length; i++)  // Count files in total
             {
-                let file = file_input_element.files[i];
+                let file = fileInputElement.files[i]; 
                 total_files += 1;
             }
             console.log("Total files: " + total_files)
-            if (total_files > 1)
+            if (total_files > 1)  // if there is more than one file selected
             { 
-                let first_file_name = file_input_element.files[0].name
+                let first_file_name = fileInputElement.files[0].name
                 $("#fileToUpload").html(first_file_name + " and " + (total_files - 1) + " More");
             }
-            else
+            else  // if only one files are selected
             {
-                let first_file_name = file_input_element.files[0].name
+                let first_file_name = fileInputElement.files[0].name
                 $("#fileToUpload").html(first_file_name);
             }
         }
