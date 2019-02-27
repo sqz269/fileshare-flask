@@ -69,7 +69,7 @@ window.onload = function() {
 }
 
 function upload_start_change(){
-    $("#UploadInfo").attr("class", "d-none d-block"); // show upload progress bar
+    $("#UploadInfo").toggleClass("d-none d-block"); // show upload progress bar
     $("#UploadProgress").addClass("progress-bar-animated");  // Animate progress bar
 
     $("#UploadInfoFileView").toggleClass("d-none d-block"); // show upload progress bar on the file view page
@@ -79,8 +79,8 @@ function upload_start_change(){
     $("#uploadFileInput").attr("disabled", true);  // disable select file while uploading file
 }
 
-function upload_finish_change() {
-    $("#fileUploadSuccessBanner").toggleClass("d-none", "d-show");
+function upload_finish_change_success() {
+    $("#fileUploadSuccessBanner").toggleClass("d-none d-show");
 
     $("#UploadInfo").toggleClass("d-block d-none"); // hide upload progress bar
     $("#UploadProgress").removeClass("progress-bar-animated"); // remove animation on the progress bar
@@ -93,13 +93,29 @@ function upload_finish_change() {
     $("#uploadFileSubmit").removeClass("disabled").attr("value", "Upload");  // Disable upload button
 }
 
+function upload_finish_change_failed() {
+    $("#UploadInfo").toggleClass("d-block d-none"); // hide upload progress bar
+    $("#UploadProgress").removeClass("progress-bar-animated"); // remove animation on the progress bar
+
+    $("#UploadInfoFileView").toggleClass("d-block d-none"); // hide upload progress bar on the file view page
+    $("#UploadProgressFileView").addClass("progress-bar-animated");  // remove Animate progress bar
+
+    $('#UploadProgress').attr('aria-valuenow', 0).css('width', 0 + '%').text(0 + '%');  // Reset the progress bar
+    $("#uploadFileInput").attr("disabled", false);  // disable select file while uploading file
+    $("#uploadFileSubmit").removeClass("disabled").attr("value", "Upload");  // Disable upload button
+}
+
+function upload_fished_modal_change_failed(errmsg) {
+    $("#UploadStatusFailedText").html("Upload Failed: " +errmsg);
+    $("#UploadStatusFailedText").toggleClass("d-none");
+    upload_finish_change_failed();
+}
+
 $(document).ready(function() {  // Credit to https://www.youtube.com/watch?v=f-wXTpbNWoM
-
-	$('form').on('submit', function(event) {
-
+	$('#uploadFileForm').on('submit', function(event) {
 		event.preventDefault();
 
-		var formData = new FormData($('form')[0]);
+        var formData = new FormData($('form')[0]);
 
         upload_start_change();
 
@@ -121,7 +137,6 @@ $(document).ready(function() {  // Credit to https://www.youtube.com/watch?v=f-w
 
                         $('#UploadProgress').attr('aria-vawaluenow', percent).css('width', percent + '%').text(percent + '%');
                         $('#UploadProgressFileView').attr('aria-vawaluenow', percent).css('width', percent + '%').text(percent + '%');
-
 					}
 
 				});
@@ -134,13 +149,68 @@ $(document).ready(function() {  // Credit to https://www.youtube.com/watch?v=f-w
 			processData : false,
 			contentType : false,
 			success : function() {
-                upload_finish_change();
-			}
+                upload_finish_change_success();
+            },
+            complete: function(xhr, textStatus) {
+                if (xhr.status == 200) {
+                    console.log("Upload Complete"); 
+
+                }
+                else if (xhr.status == 401) {
+                    console.log("Authorization Required");
+                    upload_fished_modal_change_failed("Authorization Required")
+                }
+                else if (xhr.status == 500) {
+                    upload_fished_modal_change_failed("Server Unable To Handle Requests")
+                }
+                else if (xhr.status == 0){
+                    upload_fished_modal_change_failed("Request Aborted By Remote")
+                }
+                else {
+                    console.log("Failed to complete operation. Error: " + xhr.status);
+                    upload_fished_modal_change_failed("Status Code: "+ xhr.status)
+                }
+            },
+            statusCode: {
+                401: function(xhr) {
+                  if(window.console) console.log(xhr.responseText);
+                }
+              }
 		});
 
 	});
 
 });
+
+
+function user_login()
+{
+    let current_path = window.location.pathname;
+    // Sending and receiving data in JSON format using POST method
+    let xhr = new XMLHttpRequest();
+    let url = window.location.protocol + "//" + window.location.hostname + "/Login";
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            $("#loginStatusFail").toggleClass("d-none d-show");
+            console.log(json);
+        }
+    };
+
+    let username = $("#loginInputUsername").val();
+    let password = $("#loginInputPassword").val();
+
+    if (username == "" || password == ""){
+        $("#loginStatusFail").toggleClass("d-none d-show");
+    }
+
+    var data = JSON.stringify({"USERNAME": username, "PASSWORD": password});
+    console.log(data)
+    xhr.send(data);
+}
+
 
 function displayFileInfo(info) {
     // Show file info, can be replaced with for loop but too lazy :(

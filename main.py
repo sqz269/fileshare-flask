@@ -3,8 +3,10 @@ from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from urllib.parse import unquote
+from base64 import b64encode
 from colorama import init
 from hashlib import sha256
+import jwt
 import time
 import magic
 import os
@@ -14,11 +16,105 @@ import sys
 # Path operations possibly contains vulnerability
 
 app = Flask(__name__)
-init()  # Allow Colors on windows based Terminal
+app.config.update({"SQLALCHEMY_DATABASE_URI": "sqlite:///C:/Users/Shangqing/Desktop/asdf.db"})
+# b64encode(os.urandom(15))
+# WARNING: CHANGE THE SECRET KEY TO YOUR OWN
+app.config.update({"SECRET_KEY": "kX5UsqycEGEUCjMI2tB7SVjjnr7BY6A4".encode("utf-8")})
+bcrypt = Bcrypt(app=app)
+db = SQLAlchemy(app)
+
+init()  # Allow Colors on windows Terminal (cmd/powershell)
 
 
-# class User(db.Model):
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+    # last_login_date = db.Column(db.String(40), nullable=True)
+    # last_login_addr = db.Column(db.String(20), nullable=True)
 
+    def __repr__(self):
+        return '<ID %r; User %r;>' % (self.id, self.username)
+
+    def get_user_password(self):
+        return self.password
+
+    # def get_user_last_login_date(self):
+    #     return self.last_login_date
+
+    # def get_user_last_login_addr(self):
+    #     return self.last_login_addr
+
+
+def database_add_user(username, password_plain_text):
+    user = User(username=username, password=bcrypt.generate_password_hash(password_plain_text.encode("utf-8")))
+    db.session.add(user)
+    db.session.commit()
+
+
+def database_delete_user(username):
+    """
+    Delete user from database
+
+    :Args:
+        username (str) the user's username to be deleted from the db
+    """
+    User.query.filter(User.username == username).delete()
+    db.session.commit()
+
+
+def database_user_auth(username, password_plain_text):
+    """
+    Check if the user have the correct credentials to login
+    
+    :Args:
+        username (str) the username to login
+        password (str) the password
+
+    :Return:
+        (bool) True if the user's credential is valid, else return False
+    """
+    record = User.query.filter(User.username == username).first()
+    print("Plain Text: {}\nEncoded: {}".format(password_plain_text,record.get_user_password()))
+    return bcrypt.check_password_hash(record.get_user_password(), password_plain_text)
+
+
+def database_test():
+    db.drop_all()
+    db.create_all()
+    database_add_user("admin", "hunter2")
+    # user = User(username="administrator", password="hunter2")
+    # user_0 = User(username="admin", password="hunter2")
+    # user_1 = User(username="anon", password="fag")
+    # db.session.add(user_0)
+    # db.session.commit()
+
+    # User.query.filter(User.username == "anon").delete()
+    # db.session.commit()
+
+    # data = User.query.all()
+    # print(data)
+
+    # record = User.query.filter(User.username == "admin").first()
+    # print(record)
+    # print(record.get_user_password())
+
+    # database_delete_user("notauser")
+
+
+# database_test()
+
+
+def JWT_validate(encoded_jwt):
+    jwt_decoded = jwt.decode(encoded_jwt, app.config["SECRET_KEY"])
+    created = jwt_decoded["CREATED"]
+    valid = jwt_decoded["VALIDFOR"]
+    print("IS JWT VALID: {}".format(time.time() < created + valid))
+    return time.time() < created + valid
+
+
+def JWT_issue(valid_time=86400):
+    return jwt.encode({"CREATED": time.time(), "VALIDFOR": valid_time}, app.config["SECRET_KEY"])
 
 
 def creation_date(path_to_file):
@@ -91,12 +187,33 @@ def get_list_of_file_with_path_surface(dir_path, url_location):
 
 @app.route("/Login", methods=["POST"])
 def auth():
-    pass
+    login_data = request.get_json()
+
+    if not login_data["USERNAME"] or not login_data["PASSWORD"]:
+        return jsonify({"STATUS" : 1, "Details": "Invalid username or password"})
+
+    print(login_data)
+    isAuthSuccess = database_user_auth(login_data["USERNAME"], login_data["PASSWORD"])
+    if isAuthSuccess:
+        data = jsonify({"STATUS" : 0, "Details": "Authorized"})
+        data.set_cookie("AUTH_TOKEN", JWT_issue())
+        return data
+    else:
+        return jsonify({"STATUS" : 1, "Details": "Invalid username or password"})
 
 
 @app.route("/Upload", methods=["POST"])  # RESTFUL
 def upload_file():
     # check if the post request has the file part
+    if app.config["UPLOAD_AUTH_REQUIRED"]:
+        try:
+            jwt_token = request.cookies["AUTH_TOKEN"]
+        except KeyError as noToken:
+            abort(401)
+
+        if not JWT_validate(jwt_token):
+            abort(401)
+
     dst_dir = request.args.get("dst")
 
     if not dst_dir:
@@ -112,25 +229,26 @@ def upload_file():
             file_name = file.filename
         else:
             file_name = secure_filename(file.filename)
+        print(dst_dir_abs_path)
         dst_abs_path = dst_dir_abs_path + file_name
         file.save(dst_abs_path)
+    print("File Uploaded: {}".format(files))
+    return jsonify({"STATUS": 0, "Details": "File uploaded successfully"})
 
-    return ""
 
-
-@app.route("/DeleteFile", methods=["DELETE"])
+@app.route("/Delete", methods=["DELETE"])
 def delete_file():
     file_path = request.get_json()  # Posted JSON {"PATH": <FileURL>}
     # TODO Check user Privilege return 403 (int) (Json) If no privilege to delete else return 0 (int) json form
     try:
         os.remove(os.path.abspath(file_path))
-        return jsonify({"Status_code": 0, "Detail": "Success"})
+        return jsonify({"STATUS": 0, "Details": "Success"})
     except PermissionError:
-        return jsonify({"Status_code": 1, "Detail": "Unable to delete file, Access denied"})
+        return jsonify({"STATUS": 1, "Details": "Unable to delete file, Access denied"})
     except FileNotFoundError:
-        return jsonify({"Status_code": 2, "Detail": "Unable to delete file, Target file does not exist"}) 
+        return jsonify({"STATUS": 2, "Details": "Unable to delete file, Target file does not exist"}) 
     except Exception as error:
-        return jsonify({"Status_code": 3, "Detail": "Unable to delete file, An Exception occurred: {}".format(error)})
+        return jsonify({"STATUS": 3, "Details": "Unable to delete file, An Exception occurred: {}".format(error)})
 
 
 @app.route("/ShowFileDetail", methods=["POST"])
@@ -173,7 +291,7 @@ def get_file_details():
 @app.route("/<path:path>", methods=["POST", "GET"])
 def change_dir(path):
     """
-    List the directory requested from URL77
+    List the directory requested from URL
     """
     try:
         target_path = "./static/" + app.config["FILEDIR"] + "/" + path  # Get the relative path for the directory
@@ -196,9 +314,9 @@ def change_dir(path):
         return abort(404)
 
 
-def serve(ipaddr, port, ftpDir="ftpFiles", secure_upload_filename=True, debug=False):
+def config(fileDir="ftpFiles", secure_upload_filename=True, upload_auth_required=True):
     """
-    Start the server
+    Config the server
 
     :Args:
         ipaddr (str) IP address the server should bind to
@@ -207,13 +325,26 @@ def serve(ipaddr, port, ftpDir="ftpFiles", secure_upload_filename=True, debug=Fa
         enable_register (bool) true if allow anyone to register
         debug (Bool)  Debug Mode
     """
-    app.config.update({"FILEDIR": ftpDir})
+    app.config.update({"FILEDIR": fileDir})
     app.config.update({"SECUREFILENAME": secure_upload_filename})
+    app.config.update({"UPLOAD_AUTH_REQUIRED": upload_auth_required})
     if not secure_upload_filename:
         app.logger.warning("SECURE UPLOAD FILE NAME IS DISABLED. THIS MIGHT CAUSE UNEXPECTED CONSEQUENCES")
+    app.logger.debug(app.config.get("SECRET_KEY"))
+
+
+def serve(ipaddr, port, debug=False):
+    """
+    Start the server
+
+    :Args:
+        ipaddr (str) IP address the server should bind to
+        port (int)  Port number the server should listening at
+    """
     app.run(ipaddr, port, debug=debug)
 
 
+config()
+
 if __name__ == "__main__":
-    # ARGUMENT 1: IP Address, 2: Port
-    serve("localhost", 80, debug=True, secure_upload_filename=True, )
+    serve("localhost", 80, debug=True)
