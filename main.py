@@ -9,7 +9,7 @@ import jwt
 import time
 import magic
 import os
-# import platform
+import platform
 
 # Path operations possibly contains vulnerability
 
@@ -314,8 +314,6 @@ def config(database_uri, secret_key, fileDir="ftpFiles", secure_upload_filename=
         database_path (str) uri points to the database to store user login credentials
         secret_key (str) key will be used to encrypt the server's JWT, will be encoded to utf-8
         ftpDir (str)  Where will be the shared file stored (MUST be under ./static)
-        enable_register (bool) true if allow anyone to register
-        debug (Bool)  Debug Mode
     """
     init()  # Allow Colors on windows Terminal (cmd/powershell)
     app.config.update({"SQLALCHEMY_DATABASE_URI": database_uri})
@@ -341,7 +339,7 @@ def serve(ipaddr, port, debug=False):
     """
     app.run(ipaddr, port, debug=debug)
 
-config("sqlite:///C:/Users/Shangqing/Desktop/asdf.db", "kX5UsqycEGEUCjMI2tB7SVjjnr7BY6A4")
+config("", "")  # Arg1: DB URI, Arg2: Secret Key
 
 if __name__ == "__main__":
     serve("localhost", 80, debug=True)
