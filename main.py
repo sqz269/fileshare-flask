@@ -98,11 +98,14 @@ def database_test():
 
 
 def JWT_validate(encoded_jwt):
-    jwt_decoded = jwt.decode(encoded_jwt, app.config["SECRET_KEY"])
-    created = jwt_decoded["CREATED"]
-    valid = jwt_decoded["VALIDFOR"]
-    print("IS JWT VALID: {}".format(time.time() < created + valid))
-    return time.time() < created + valid
+    try:
+        jwt_decoded = jwt.decode(encoded_jwt, app.config["SECRET_KEY"])
+        created = jwt_decoded["CREATED"]
+        valid = jwt_decoded["VALIDFOR"]
+        print("IS JWT VALID: {}".format(time.time() < created + valid))
+        return time.time() < created + valid
+    except jwt.exceptions.InvalidSignatureError:
+        return False
 
 
 def JWT_issue(valid_time=86400):
@@ -173,7 +176,7 @@ def get_list_of_file_with_path_surface(dir_path, url_location):
             file_path = "/" + f
         else:
             file_path = "/" + url_location + f
-        file_with_path.update({f : (file_path, os.path.isdir(os.path.abspath("./static/" + app.config["FILEDIR"] + "/" + file_path)))})
+        file_with_path.update({f : (file_path, os.path.isdir(os.path.abspath(app.config["FILEDIR"] + "/" + file_path)))})
     return file_with_path
 
 
@@ -216,7 +219,7 @@ def upload_file():
     if not dst_dir:
         return jsonify({"STATUS": 1, "Details": "Destination is not specified"})
 
-    dst_dir_abs_path = os.path.abspath("./static/" + app.config["FILEDIR"] + "/" + dst_dir)
+    dst_dir_abs_path = os.path.abspath(app.config["FILEDIR"] + "/" + dst_dir)
     if dst_dir_abs_path[-1] != "/" or dst_dir_abs_path[-1] != "\\":
         dst_dir_abs_path += "/"
 
@@ -258,7 +261,7 @@ def get_file_details():
         file_path_info["PATH"] = unquote(file_path_info["PATH"])  # Unescape URL sequence to normal characters
         file_path_browser = file_path_info["PATH"] if file_path_info["PATH"][-1] == "/" else file_path_info["PATH"] + "/"
         #  ^ If PATH provided look like "/blablabla/" then don't add / to the end of it, if it looks like "/blabla" then add "/" to the end to make it "/blabla/"
-        file_abs_path = os.path.abspath("./static/" + app.config["FILEDIR"] + "/" + file_path_browser + file_path_info["FILENAME"])
+        file_abs_path = os.path.abspath(app.config["FILEDIR"] + "/" + file_path_browser + file_path_info["FILENAME"])
         if "." in file_path_info["FILENAME"]:  # if there is a . in the file name then assume the things behind the . is the file extention
             file_ext = file_path_info["FILENAME"].split(".")[-1]
         else:  # If there is no dot, no file extention
@@ -291,7 +294,7 @@ def change_dir(path):
     List the directory requested from URL
     """
     try:
-        target_path = "./static/" + app.config["FILEDIR"] + "/" + path  # Get the relative path for the directory
+        target_path = app.config["FILEDIR"] + "/" + path  # Get the relative path for the directory
         if os.path.isdir(target_path):   # If the requested resource is a directory
             files = get_list_of_file_with_path_surface(target_path, path) # Get all file/dir under the requested directory
             if request.method == "GET": # Render webpage if it's GET
@@ -302,7 +305,7 @@ def change_dir(path):
                 return jsonify(files)
         else:  # If the requested resource is a file
             # Send the file to client
-            return send_file(os.path.abspath("./static/" + app.config["FILEDIR"] + "/" + path),
+            return send_file(os.path.abspath(app.config["FILEDIR"] + "/" + path),
                             attachment_filename=path.split("/")[-1],
                             conditional=True) # Conditional True makes it transfer using STATUS 206 (Chunk by chunk)
     except PermissionError:
@@ -311,14 +314,14 @@ def change_dir(path):
         return abort(404)
 
 
-def config(database_uri, secret_key, fileDir="ftpFiles", secure_upload_filename=True, upload_auth_required=True):
+def config(database_uri, secret_key, fileDir="E:\\PROG\\ftp-flask\\ftpFiles", secure_upload_filename=True, upload_auth_required=True):
     """
     Config the server
 
     :Args:
         database_path (str) uri points to the database to store user login credentials
         secret_key (str) key will be used to encrypt the server's JWT, will be encoded to utf-8
-        ftpDir (str)  Where will be the shared file stored (MUST be under ./static)
+        fileDir (str)  Where will be the shared file stored (MUST be under ./static)
     """
     init()  # Allow Colors on windows Terminal (cmd/powershell)
     app.config.update({"SQLALCHEMY_DATABASE_URI": database_uri})
