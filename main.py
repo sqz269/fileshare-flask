@@ -314,7 +314,7 @@ def change_dir(path):
         return abort(404)
 
 
-def config(database_uri, secret_key, fileDir="E:\\PROG\\ftp-flask\\ftpFiles", secure_upload_filename=True, upload_auth_required=True):
+def config(database_uri, secret_key, fileDir, secure_upload_filename=True, upload_auth_required=True):
     """
     Config the server
 
