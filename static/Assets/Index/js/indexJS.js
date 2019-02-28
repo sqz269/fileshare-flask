@@ -149,31 +149,54 @@ $(document).ready(function() {  // Credit to https://www.youtube.com/watch?v=f-w
 			contentType : false,
 			success : function() {
                 uploadFinishChangeSuccess();
-                console.log("Operation Completed :" + xhr.statusCode)
+                console.log("Operation Completed :" + xhr.statusCode);
             },
             complete: function(xhr, textStatus) {
-                console.log("Operation Completed :" + xhr.statusCode)
+                console.log("Operation Completed :" + xhr.statusCode);
             },
             statusCode: {
                 401: function(xhr) {
-                    uploadFinishModalChangeFailed("Authorization Required")
-                    console.log("Operation Completed :" + xhr.statusCode)
+                    uploadFinishModalChangeFailed("Authentication Required");
+                    console.log("Operation Completed :" + xhr.statusCode);
                 },
                 500: function(xhr) {
-                    uploadFinishModalChangeFailed("Server Unable To Handle Requests")
-                    console.log("Operation Completed :" + xhr.statusCode)
+                    uploadFinishModalChangeFailed("Server Unable To Handle Requests");
+                    console.log("Operation Completed :" + xhr.statusCode);
                 },
                 0: function(xhr) {
-                    uploadFinishModalChangeFailed("Request Aborted By Server")
-                    console.log("Operation Completed :" + xhr.statusCode)
+                    uploadFinishModalChangeFailed("Request Aborted By Server");
+                    console.log("Operation Completed :" + xhr.statusCode);
                 }
               }
 		});
-
 	});
-
 });
 
+
+function move_file()
+{
+    // Sending and receiving data in JSON format using POST method
+    let xhr = new XMLHttpRequest();
+    let url = window.location.protocol + "//" + window.location.hostname + "/Move";
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var authStatus = JSON.parse(xhr.responseText);
+            if (authStatus["STATUS"] === 0){
+                $("#loginStatusSuccess").toggleClass("d-none d-show");
+            }
+            else {
+                $("#loginStatusFail").toggleClass("d-none d-show");
+            }
+            console.log(authStatus);
+        }
+    };
+
+    var data = JSON.stringify({"USERNAME": username, "PASSWORD": password});
+    console.log(data);
+    xhr.send(data);
+}
 
 function user_login()
 {
@@ -186,8 +209,8 @@ function user_login()
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
             var authStatus = JSON.parse(xhr.responseText);
-            if (authStatus["STATUS"] == 0){
-                $("#loginStatusSuccess").toggleClass("d-none d-show")
+            if (authStatus["STATUS"] === 0){
+                $("#loginStatusSuccess").toggleClass("d-none d-show");
             }
             else {
                 $("#loginStatusFail").toggleClass("d-none d-show");
@@ -204,7 +227,7 @@ function user_login()
     }
     else {
         var data = JSON.stringify({"USERNAME": username, "PASSWORD": password});
-        console.log(data)
+        console.log(data);
         xhr.send(data);
     }
 }
@@ -256,22 +279,22 @@ function setUploadFileLabel()
         }
         else  // if files are selected
         {
-            let total_files = 0;
+            let totalFiles = 0;
             for (let i = 0; i < fileInputElement.files.length; i++)  // Count files in total
             {
                 let file = fileInputElement.files[i]; 
-                total_files += 1;
+                totalFiles += 1;
             }
-            console.log("Total files: " + total_files)
-            if (total_files > 1)  // if there is more than one file selected
+            console.log("Total files: " + totalFiles)
+            if (totalFiles > 1)  // if there is more than one file selected
             { 
-                let first_file_name = fileInputElement.files[0].name
-                $("#fileToUpload").html(first_file_name + " and " + (total_files - 1) + " More");
+                let firstFileName = fileInputElement.files[0].name
+                $("#fileToUpload").html(firstFileName + " and " + (totalFiles - 1) + " More");
             }
             else  // if only one files are selected
             {
-                let first_file_name = fileInputElement.files[0].name
-                $("#fileToUpload").html(first_file_name);
+                let firstFileName = fileInputElement.files[0].name
+                $("#fileToUpload").html(firstFileName);
             }
         }
     }

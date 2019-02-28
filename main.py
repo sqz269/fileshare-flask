@@ -194,6 +194,11 @@ def auth():
         return jsonify({"STATUS" : 1, "Details": "Invalid username or password"})
 
 
+@app.route("/Move", methods=["POST"])
+def move_file():
+    pass
+
+
 @app.route("/Upload", methods=["POST"])  # RESTFUL
 def upload_file():
     # check if the post request has the file part
