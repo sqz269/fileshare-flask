@@ -1,19 +1,66 @@
-from flask import Flask, render_template, request, abort, send_file, jsonify
+from flask import Flask, render_template, request, abort, send_file, json
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from urllib.parse import unquote
 from base64 import b64encode
 from colorama import init
+from shutil import rmtree
+import configparser
 import jwt
 import time
 import magic
 import os
 import platform
 
-# Path operations possibly contains vulnerability
+
+def load_config_from_file():
+    cfg = configparser.ConfigParser()
+    cfg.read("server-config.ini")
+    server_cfg = cfg["SERVER"]
+    db_uri = server_cfg.get("DATABASE_URI")
+    secret_key = server_cfg.get("SECRET_KEY")
+    file_dir = server_cfg.get("FILEDIR")
+    use_secure_filename = server_cfg.getboolean("SECUREFILENAME")
+    upload_auth_required = server_cfg.getboolean("UPLOAD_AUTH_REQUIRED")
+    delete_auth_required = server_cfg.getboolean("DELETE_AUTH_REQUIRED")
+    jwt_valid_time = int(server_cfg.get("JWT_VALID_FOR"))
+    config(db_uri,
+        secret_key,
+        file_dir,
+        JWT_valid_time=jwt_valid_time, 
+        secure_upload_filename=secure_filename, 
+        upload_auth_required=upload_auth_required,
+        delete_auth_required=delete_auth_required)
+
+
+def config(database_uri, secret_key, fileDir, JWT_valid_time=86400, secure_upload_filename=True, upload_auth_required=True, delete_auth_required=True):
+    """
+    Config the server
+
+    :Args:
+        database_path (str) uri points to the database to store user login credentials
+        secret_key (str) key will be used to encrypt the server's JWT, will be encoded to utf-8
+        fileDir (str)  Where will be the shared file stored (MUST be under ./static)
+    """
+    init()  # Allow Colors on windows Terminal (cmd/powershell)
+    app.logger.critical(database_uri)
+    app.config.update({"SQLALCHEMY_DATABASE_URI": database_uri})
+    app.config.update({"SECRET_KEY": secret_key.encode("utf-8")})
+    app.config.update({"FILEDIR": fileDir})
+    app.config.update({"SECUREFILENAME": secure_upload_filename})
+    app.config.update({"UPLOAD_AUTH_REQUIRED": upload_auth_required})
+    app.config.update({"DELETE_AUTH_REQUIRED": delete_auth_required})
+    app.config.update({"JWT_VALID_FOR": JWT_valid_time})
+    if not secure_upload_filename:
+        app.logger.warning("SECURE UPLOAD FILE NAME IS DISABLED. THIS MIGHT CAUSE UNEXPECTED CONSEQUENCES")
+    app.logger.debug(app.config.get("SECRET_KEY"))
+
 
 app = Flask(__name__)
+
+load_config_from_file()
+
 bcrypt = Bcrypt(app=app)
 db = SQLAlchemy(app)
 
@@ -22,20 +69,12 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
-    # last_login_date = db.Column(db.String(40), nullable=True)
-    # last_login_addr = db.Column(db.String(20), nullable=True)
 
     def __repr__(self):
         return '<ID %r; User %r;>' % (self.id, self.username)
 
     def get_user_password(self):
         return self.password
-
-    # def get_user_last_login_date(self):
-    #     return self.last_login_date
-
-    # def get_user_last_login_addr(self):
-    #     return self.last_login_addr
 
 
 def database_add_user(username, password_plain_text):
@@ -67,49 +106,32 @@ def database_user_auth(username, password_plain_text):
         (bool) True if the user's credential is valid, else return False
     """
     record = User.query.filter(User.username == username).first()
-    print("Plain Text: {}\nEncoded: {}".format(password_plain_text,record.get_user_password()))
-    return bcrypt.check_password_hash(record.get_user_password(), password_plain_text)
+    try:
+        return bcrypt.check_password_hash(record.get_user_password(), password_plain_text)
+    except:
+        return False
 
 
-def database_test():
-    db.drop_all()
-    db.create_all()
-    database_add_user("admin", "hunter2")
-    # user = User(username="administrator", password="hunter2")
-    # user_0 = User(username="admin", password="hunter2")
-    # user_1 = User(username="anon", password="fag")
-    # db.session.add(user_0)
-    # db.session.commit()
-
-    # User.query.filter(User.username == "anon").delete()
-    # db.session.commit()
-
-    # data = User.query.all()
-    # print(data)
-
-    # record = User.query.filter(User.username == "admin").first()
-    # print(record)
-    # print(record.get_user_password())
-
-    # database_delete_user("notauser")
+def make_json_resp_with_status(json_data, http_status):
+    response = app.response_class(response=json.dumps(json_data),
+                                status=http_status,
+                                mimetype='application/json')
+    return response
 
 
-# database_test()
-
-
-def JWT_validate(encoded_jwt):
+def JWT_validate(encoded_jwt, remote_addr):
     try:
         jwt_decoded = jwt.decode(encoded_jwt, app.config["SECRET_KEY"])
         created = jwt_decoded["CREATED"]
         valid = jwt_decoded["VALIDFOR"]
-        print("IS JWT VALID: {}".format(time.time() < created + valid))
-        return time.time() < created + valid
+        issuedfor = jwt_decoded["ISSUEDFOR"]
+        return (time.time() < created + valid) and (issuedfor == remote_addr)
     except jwt.exceptions.InvalidSignatureError:
         return False
 
 
-def JWT_issue(valid_time=86400):
-    return jwt.encode({"CREATED": time.time(), "VALIDFOR": valid_time}, app.config["SECRET_KEY"])
+def JWT_issue(ipaddr):
+    return jwt.encode({"CREATED": time.time(), "VALIDFOR": app.config["JWT_VALID_FOR"], "ISSUEDFOR": ipaddr}, app.config["SECRET_KEY"])
 
 
 def creation_date(path_to_file):
@@ -160,10 +182,10 @@ def get_list_of_file_with_path_surface(dir_path, url_location):
         url_location (str)  A URL location used to point to the file (The file's parent directory's URL path)
 
     :Return:
-        (dict) {<FileName>: (<FilePath>, <IsDirectory>)}
-                <FileName> (string);
-                <FilePath> (String): URL path to the file;
-                <IsDirectory> (Boolean): Is the file a directory;
+        (dict) {<FileName>: (<FilePath>, <IsDirectory>)};
+                <FileName> : (string) File name
+                <FilePath> : (String) URL path to the file;
+                <IsDirectory> : (Boolean) Is the file a directory;
 
     :Raise:
         FileNotFoundError when a directory requested for list does not exist
@@ -182,42 +204,76 @@ def get_list_of_file_with_path_surface(dir_path, url_location):
 
 @app.route("/Login", methods=["POST"])
 def auth():
-    login_data = request.get_json()
+    try:
+        login_data = request.get_json()
+        if not login_data["USERNAME"] or not login_data["PASSWORD"]:
+            return make_json_resp_with_status({"STATUS" : 1, "Details": "Invalid username or password"}, 401)
 
-    if not login_data["USERNAME"] or not login_data["PASSWORD"]:
-        return jsonify({"STATUS" : 1, "Details": "Invalid username or password"})
-
-    print(login_data)
-    isAuthSuccess = database_user_auth(login_data["USERNAME"], login_data["PASSWORD"])
-    if isAuthSuccess:
-        data = jsonify({"STATUS" : 0, "Details": "Authorized"})
-        data.set_cookie("AUTH_TOKEN", JWT_issue())
-        return data
-    else:
-        return jsonify({"STATUS" : 1, "Details": "Invalid username or password"})
+        isAuthSuccess = database_user_auth(login_data["USERNAME"], login_data["PASSWORD"])
+        if isAuthSuccess:
+            resp = make_json_resp_with_status({"STATUS": 0, "Details": "Authorized"}, 200)
+            resp.set_cookie("AUTH_TOKEN", JWT_issue(request.remote_addr))
+            return resp
+        else:
+            return make_json_resp_with_status({"STATUS" : 1, "Details": "Invalid username or password"}, 401)
+    except Exception as err:
+        print(err)
+        return make_json_resp_with_status({"STATUS": 3, "Details": "Unable to proceed to authorize. Exception occurred: {}".format(err)}, 500)
 
 
 @app.route("/Move", methods=["POST"])
 def move_file():
-    pass
+    return make_json_resp_with_status({"STATUS": 1337, "Details": "Feature Working In Progress"}, 501)
 
 
-@app.route("/Upload", methods=["POST"])  # RESTFUL
+@app.route("/Delete", methods=["DELETE", "POST"])
+def delete_file():
+    file_list = request.get_json()  # Posted JSON {"FILES": [ListOfFiles]}
+    
+    if app.config["DELETE_AUTH_REQUIRED"]:
+
+        try:
+            jwt_token = request.cookies["AUTH_TOKEN"]
+        except KeyError as noToken:
+            return make_json_resp_with_status({"STATUS": 5,"Details": "Unable to delete file, Authentication required."}, 401)
+
+        if not JWT_validate(jwt_token, request.remote_addr):
+            return make_json_resp_with_status({"STATUS": 5,"Details": "Unable to delete file, Authentication required."}, 401)
+
+    try:
+        file_list = file_list.get("FILES")
+        for file in file_list:
+            file_path = app.config["FILEDIR"] + file if file[0] == "/" or file[0] == "\\" else app.config["FILEDIR"] + "/" + file
+            file_abs_path = os.path.abspath(file_path)
+            if os.path.isdir(file_abs_path):
+                rmtree(file_abs_path)
+            else:
+                os.remove(file_abs_path)
+        return make_json_resp_with_status({"STATUS": 0, "Details": "Success"}, 200)
+    except PermissionError:
+        return make_json_resp_with_status({"STATUS": 1, "Details": "Unable to delete file, Access to resource is denied by OS"}, 403)
+    except FileNotFoundError:
+        return make_json_resp_with_status({"STATUS": 2, "Details": "Unable to delete file, Target file does not exist"}, 404)
+    except Exception as error:
+        return make_json_resp_with_status({"STATUS": 3, "Details": "Unable to delete file, An Exception occurred: {}".format(error)}, 500)
+
+
+@app.route("/Upload", methods=["POST"])
 def upload_file():
     # check if the post request has the file part
     if app.config["UPLOAD_AUTH_REQUIRED"]:
         try:
             jwt_token = request.cookies["AUTH_TOKEN"]
         except KeyError as noToken:
-            abort(401)
+            return make_json_resp_with_status({"STATUS": 5,"Details": "Upload Aborted, Authentication required."}, 401)
 
-        if not JWT_validate(jwt_token):
-            abort(401)
+        if not JWT_validate(jwt_token, request.remote_addr):
+            return make_json_resp_with_status({"STATUS": 5,"Details": "Upload Aborted, Authentication required."}, 401)
 
-    dst_dir = request.args.get("dst")
-
-    if not dst_dir:
-        return jsonify({"STATUS": 1, "Details": "Destination is not specified"})
+    try:
+        dst_dir = request.args.get("dst")
+    except:
+        return make_json_resp_with_status({"STATUS": 2, "Details": "Unable to upload file, Desnation not specified"}, 400)
 
     dst_dir_abs_path = os.path.abspath(app.config["FILEDIR"] + "/" + dst_dir)
     if dst_dir_abs_path[-1] != "/" or dst_dir_abs_path[-1] != "\\":
@@ -229,26 +285,10 @@ def upload_file():
             file_name = file.filename
         else:
             file_name = secure_filename(file.filename)
-        print(dst_dir_abs_path)
         dst_abs_path = dst_dir_abs_path + file_name
         file.save(dst_abs_path)
-    print("File Uploaded: {}".format(files))
-    return jsonify({"STATUS": 0, "Details": "File uploaded successfully"})
 
-
-@app.route("/Delete", methods=["DELETE"])
-def delete_file():
-    file_path = request.get_json()  # Posted JSON {"PATH": <FileURL>}
-    # TODO Check user Privilege return 403 (int) (Json) If no privilege to delete else return 0 (int) json form
-    try:
-        os.remove(os.path.abspath(file_path))
-        return jsonify({"STATUS": 0, "Details": "Success"})
-    except PermissionError:
-        return jsonify({"STATUS": 1, "Details": "Unable to delete file, Access denied"})
-    except FileNotFoundError:
-        return jsonify({"STATUS": 2, "Details": "Unable to delete file, Target file does not exist"})
-    except Exception as error:
-        return jsonify({"STATUS": 3, "Details": "Unable to delete file, An Exception occurred: {}".format(error)})
+    return make_json_resp_with_status({"STATUS": 0, "Details": "File uploaded successfully"}, 200)
 
 
 @app.route("/ShowFileDetail", methods=["POST"])
@@ -273,17 +313,17 @@ def get_file_details():
             "file_name": file_path_info["FILENAME"],
             "file_ext": file_ext,
             "file_path": file_path_info["PATH"],
-            "last_mod": str(time.ctime(os.path.getmtime(file_abs_path))),  # BUG (Maybe) Modification Date is Earlier than Creation date from some files
+            "last_mod": str(time.ctime(os.path.getmtime(file_abs_path))),
             "created": str(time.ctime(creation_date(file_abs_path))),
             "file_size": str(os.path.getsize(file_abs_path)),
             "file_content_type": magic.from_file(file_abs_path).split(",")[0],
             "full_detail": magic.from_file(file_abs_path),
             "location": file_url_location
         }
-        return jsonify(file_info)
+        return make_json_resp_with_status(file_info, 200)
     except KeyError:  # If path/filename is missing return BAD REQUEST
         abort(400)
-    except FileNotFoundError:  # BUG Will raise 404 Even the file exists. but the path have unescaped sequences. for example %20 will cause and file not found
+    except FileNotFoundError:
         abort(404)
 
 
@@ -309,32 +349,9 @@ def change_dir(path):
                             attachment_filename=path.split("/")[-1],
                             conditional=True) # Conditional True makes it transfer using STATUS 206 (Chunk by chunk)
     except PermissionError:
-        return abort(403)
+        return make_json_resp_with_status({"STATUS": 1, "Details": "Unable to get files, Access to resource is denied by OS"}, 403)
     except FileNotFoundError:
-        return abort(404)
-
-
-def config(database_uri, secret_key, fileDir, secure_upload_filename=True, upload_auth_required=True):
-    """
-    Config the server
-
-    :Args:
-        database_path (str) uri points to the database to store user login credentials
-        secret_key (str) key will be used to encrypt the server's JWT, will be encoded to utf-8
-        fileDir (str)  Where will be the shared file stored (MUST be under ./static)
-    """
-    init()  # Allow Colors on windows Terminal (cmd/powershell)
-    app.config.update({"SQLALCHEMY_DATABASE_URI": database_uri})
-    # b64encode(os.urandom(15))
-    # WARNING: CHANGE THE SECRET KEY TO YOUR OWN
-    app.config.update({"SECRET_KEY": secret_key.encode("utf-8")})
-
-    app.config.update({"FILEDIR": fileDir})
-    app.config.update({"SECUREFILENAME": secure_upload_filename})
-    app.config.update({"UPLOAD_AUTH_REQUIRED": upload_auth_required})
-    if not secure_upload_filename:
-        app.logger.warning("SECURE UPLOAD FILE NAME IS DISABLED. THIS MIGHT CAUSE UNEXPECTED CONSEQUENCES")
-    app.logger.debug(app.config.get("SECRET_KEY"))
+        return make_json_resp_with_status({"STATUS": 2, "Details": "Unable to get files, Target directory/file does not exist"}, 404)
 
 
 def serve(ipaddr, port, debug=False):
@@ -347,7 +364,6 @@ def serve(ipaddr, port, debug=False):
     """
     app.run(ipaddr, port, debug=debug)
 
-config("", "")  # Arg1: DB URI, Arg2: Secret Key
 
 if __name__ == "__main__":
-    serve("localhost", 80, debug=True)
+    serve("192.168.29.219", 80)

@@ -1,18 +1,21 @@
-function toLightTheme() {
+function toLightTheme() 
+{
     $(".bg-secondary").toggleClass("bg-secondary bg-light");
     $(".bg-dark").toggleClass("bg-dark bg-white");
     $(".text-light").toggleClass("text-light text-dark");
 }
 
 
-function toDarkTheme() {
+function toDarkTheme() 
+{
     $(".bg-white").toggleClass("bg-white bg-dark");
     $(".bg-light").toggleClass("bg-light bg-secondary");
     $(".text-dark").toggleClass("text-dark text-light");
 }
 
 
-function readCookie(name) {
+function readCookie(name) 
+{
     var nameEQ = name + "=";
     var ca = document.cookie.split(";");
     for(var i=0;i < ca.length;i++) {
@@ -28,7 +31,8 @@ function readCookie(name) {
 }
 
 
-function switchTheme() {
+function switchTheme() 
+{
     let themeSelect = $("#ChangeTheme");
     if (readCookie("theme") == "dark") {
         toLightTheme();
@@ -43,17 +47,20 @@ function switchTheme() {
     return 0;
 }
 
-function cdParent() {
+function cdParent() 
+{
     window.location.replace("../");
 }
 
-function cdRoot() {
+function cdRoot() 
+{
     window.location.replace("/");
 }
 
-window.onload = function() {
+window.onload = function() 
+{
     // Set upload destination
-    let dst = "/Upload?dst=" + encodeURIComponent(window.location.pathname)
+    let dst = "/Upload?dst=" + encodeURIComponent(window.location.pathname)  // Maybe will add a dst chooser to file upload
     document.getElementById("uploadFileForm").action = dst;
     // LOAD User settings
     let theme = readCookie("theme");
@@ -67,7 +74,8 @@ window.onload = function() {
 
 }
 
-function uploadStartChange(){
+function uploadStartChange()
+{
     $("#UploadInfo").toggleClass("d-none d-block"); // show upload progress bar
     $("#UploadProgress").addClass("progress-bar-animated");  // Animate progress bar
 
@@ -78,7 +86,8 @@ function uploadStartChange(){
     $("#uploadFileInput").attr("disabled", true);  // disable select file while uploading file
 }
 
-function uploadFinishChangeSuccess() {
+function uploadFinishChangeSuccess() 
+{
     $("#fileUploadSuccessBanner").toggleClass("d-none d-show");
 
     $("#UploadInfo").toggleClass("d-block d-none"); // hide upload progress bar
@@ -92,7 +101,8 @@ function uploadFinishChangeSuccess() {
     $("#uploadFileSubmit").removeClass("disabled").attr("value", "Upload");  // Disable upload button
 }
 
-function uploadFinishChangeFailed() {
+function uploadFinishChangeFailed() 
+{
     $("#UploadInfo").toggleClass("d-block d-none"); // hide upload progress bar
     $("#UploadProgress").removeClass("progress-bar-animated"); // remove animation on the progress bar
 
@@ -104,11 +114,29 @@ function uploadFinishChangeFailed() {
     $("#uploadFileSubmit").removeClass("disabled").attr("value", "Upload");  // Disable upload button
 }
 
-function uploadFinishModalChangeFailed(errmsg) {
+function uploadFinishModalChangeFailed(errmsg) 
+{
     $("#UploadStatusFailedText").html("Upload Failed: " +errmsg);
     $("#UploadStatusFailedText").toggleClass("d-none");
     uploadFinishChangeFailed();
 }
+
+
+function sendPOSTRequest(targetURL, data, callBackFunction, contentType="application/json")
+{
+    // Sending and receiving data using POST
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", targetURL, true);
+    xhr.setRequestHeader("Content-Type", contentType);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            console.log(xhr.responseText);
+            callBackFunction(xhr.responseText);
+        }
+    }
+    xhr.send(data);
+}
+
 
 $(document).ready(function() {  // Credit to https://www.youtube.com/watch?v=f-wXTpbNWoM
 	$("#uploadFileForm").on("submit", function(event) {
@@ -173,7 +201,7 @@ $(document).ready(function() {  // Credit to https://www.youtube.com/watch?v=f-w
 });
 
 
-function move_file()
+function moveFile()
 {
     // Sending and receiving data in JSON format using POST method
     let xhr = new XMLHttpRequest();
@@ -193,47 +221,40 @@ function move_file()
         }
     };
 
-    var data = JSON.stringify({"USERNAME": username, "PASSWORD": password});
+    let data = JSON.stringify({"USERNAME": username, "PASSWORD": password});
     console.log(data);
     xhr.send(data);
 }
 
-function user_login()
+function userLogin()
 {
-    let currentPath = window.location.pathname;
-    // Sending and receiving data in JSON format using POST method
-    let xhr = new XMLHttpRequest();
-    let url = window.location.protocol + "//" + window.location.hostname + "/Login";
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            var authStatus = JSON.parse(xhr.responseText);
-            if (authStatus["STATUS"] === 0){
-                $("#loginStatusSuccess").toggleClass("d-none d-show");
-            }
-            else {
-                $("#loginStatusFail").toggleClass("d-none d-show");
-            }
-            console.log(authStatus);
-        }
-    };
 
+    function loginCallBack(resp){
+        var authStatus = JSON.parse(resp);
+        if (!authStatus["STATUS"]){
+            $("#loginStatusSuccess").toggleClass("d-none d-show");
+        }
+        else {
+            $("#loginStatusFail").toggleClass("d-none d-show");
+        }
+        console.log(authStatus);
+    }
+
+    let url = window.location.protocol + "//" + window.location.hostname + "/Login";
     let username = $("#loginInputUsername").val();
     let password = $("#loginInputPassword").val();
-
     if (username == "" || password == ""){
         $("#loginStatusFail").toggleClass("d-none d-show");
     }
     else {
-        var data = JSON.stringify({"USERNAME": username, "PASSWORD": password});
-        console.log(data);
-        xhr.send(data);
+        let data = JSON.stringify({"USERNAME": username, "PASSWORD": password});
+        sendPOSTRequest(url, data, loginCallBack);
     }
 }
 
 
-function displayFileInfo(info) {
+function displayFileInfo(info) 
+{
     // Show file info, can be replaced with for loop but too lazy :(
     $("#fileNameData").html(info.file_name);
     $("#fileExtData").html(info.file_ext);
@@ -251,21 +272,16 @@ function displayFileInfo(info) {
     $("#fileInfoModal").modal();
 }
 
-function getFileInfo(fileName) {
+function getFileInfo(fileName) 
+{
+    function getFileInfoCallback(resp) {
+        var json = JSON.parse(resp);
+        displayFileInfo(json);
+    }
     let currentPath = window.location.pathname;
-    // Sending and receiving data in JSON format using POST method
-    let xhr = new XMLHttpRequest();
     let url = window.location.protocol + "//" + window.location.hostname + "/ShowFileDetail";
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            var json = JSON.parse(xhr.responseText);
-            displayFileInfo(json);
-        }
-    };
-    var data = JSON.stringify({"PATH": currentPath, "FILENAME": fileName});
-    xhr.send(data);
+    let data = JSON.stringify({"PATH": currentPath, "FILENAME": fileName});
+    sendPOSTRequest(url, data, getFileInfoCallback);
 }
 
 function setUploadFileLabel() 
@@ -298,4 +314,133 @@ function setUploadFileLabel()
             }
         }
     }
+}
+
+
+function addCheckBoxFiles()
+{
+    let listItems = $(".CheckBoxHolder");
+    listItems.each(function(idx, li) {
+        let files = $(li);
+        files.toggleClass("d-none d-block")
+    });
+}
+
+function removeCheckBoxFiles()
+{
+    let listItems = $(".CheckBoxHolder");
+    listItems.each(function(idx, li) {
+        let files = $(li);
+        files.toggleClass("d-block d-none");
+    });
+}
+
+function uncheckCheckBoxFiles()
+{
+    let listItems = $(".CheckBoxHolder");
+    listItems.each(function(idx, li) {
+        let files = $(li);
+        files.prop("checked", false);
+    });
+}
+
+
+function getFilesToModify() 
+{
+    var filesToModify = []
+    let listItems = $(".fileSelected");
+    listItems.each(function(idx, li) {
+        var files = $(li);
+        $(files).data("targetPath");
+        if ($(files).is(':checked')){
+            filesToModify.push($(files).data("targetpath"));
+        }
+    });
+    console.log(filesToModify);
+    return filesToModify;
+}
+
+function appendModifyFilesToModal(modalUnorderedListID)
+{
+    emptyModalFileContent(modalUnorderedListID)
+    let ULElement = $("#" + modalUnorderedListID);
+    let filesToModify = getFilesToModify();
+    for (let i in filesToModify)
+    {
+        ULElement.append('<li class="list-group-item bg-dark text-light tobeDeleted">' + filesToModify[i] + '</li>')
+    }
+}
+
+function emptyModalFileContent(modalUnorderedListID)
+{
+    let ULElement = $("#" + modalUnorderedListID);
+    ULElement.empty();
+}
+
+function moveFilePrepare()
+{
+    $("#MoveFileConfirm").toggleClass("d-none d-block");
+    addCheckBoxFiles();
+}
+
+
+function moveFileExecute()
+{
+    function moveFileExecuteCallback(resp) {
+        let json = JSON.parse(resp);
+
+    }
+
+    let modifyItems = getFilesToModify();
+    let data = JSON.stringify({"FILES": modifyItems});
+    let url = window.location.protocol + "//" + window.location.hostname + "/Move";
+    sendPOSTRequest(url, data, moveFileExecuteCallback);
+}
+
+
+function moveFileCleanUp()
+{
+    $("#MoveFileConfirm").toggleClass("d-block d-none");
+    removeCheckBoxFiles();
+    uncheckCheckBoxFiles();
+    emptyModalFileContent("fileToMove");
+}
+
+
+function deleteFilePrepare()
+{
+    $("#DeleteFileConfirm").toggleClass("d-none d-block");
+    addCheckBoxFiles();
+}
+
+function deleteFileExecute()
+{
+    function deleteFileExecuteCallback(resp){
+        console.log("Server Response: " + resp);
+        let json = JSON.parse(resp);
+        let status = json.STATUS;
+        let details = json.Details;
+        console.log("Status " + status);
+        console.log("Details " + details)
+        if (status != 0){
+            $("#DeleteFileStatusFailedText").toggleClass("d-none d-show");
+            $("#DeleteFileStatusFailedText").html(details);
+        }
+        else {
+            $("#fileDeleteSuccessBanner").toggleClass("d-none d-show");
+        }
+    }    
+
+    let modifyItems = getFilesToModify();
+    let data = JSON.stringify({"FILES": modifyItems});
+    let url = window.location.protocol + "//" + window.location.hostname + "/Delete";
+    sendPOSTRequest(url, data, deleteFileExecuteCallback);
+}
+
+function deleteFileCleanUp()
+{
+    $("#DeleteFileConfirm").toggleClass("d-block d-none")
+    removeCheckBoxFiles();
+    uncheckCheckBoxFiles();
+    emptyModalFileContent("filesToDelete");
 }

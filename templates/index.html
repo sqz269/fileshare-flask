@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="{{url_for("static", filename="Assets/Shared/js/bootstrap.min.js")}}" type="text/javascript"></script>
-        <script src="{{url_for("static", filename="Assets/Index/js/indexJS.min.js")}}" type="text/javascript"></script>
+        <script src="{{url_for("static", filename="Assets/Index/js/indexJS.js")}}" type="text/javascript"></script>
         <link href="{{url_for("static", filename="Assets/Shared/css/bootstrap.min.css")}}" rel="stylesheet" type="text/css" />
     </head>
 
@@ -16,29 +16,73 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
+        <div id="fileDeleteSuccessBanner" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+            Files has been deleted. <strong><a href=".">Reload Page</a></strong>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
         <nav class="navbar navbar-light">
             <div class="d-flex p-2">
                 <span class="float-left">
-                    <!--Test-->
-                    <button type="button" class="btn btn-link btn-sm border border-primary" data-toggle="modal" ,="" data-target="#loginModal">Test</button>
-                    <button type="button" class="btn btn-link btn-sm border border-primary" data-toggle="modal", data-target="#UploadFileModal">
+                    <!-- Login-->
+                    <button type="button" class="btn btn-link btn-sm border border-primary" data-toggle="modal", data-target="#loginModal"  title="Login">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
                             <path d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                            <path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
                         </svg>
                     </button>
+                    <!-- cd parent dir -->
                     <button type="button" onclick="javascript:cdParent();" class="btn btn-link btn-sm border border-primary" data-toggle="tooltip" data-placement="top" title="Return to Parent Dir">
-                        <svg xmls="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
                             <path fill="none" d="M0 0h24v24H0V0z"/>
                             <path d="M11 9l1.42 1.42L8.83 14H18V4h2v12H8.83l3.59 3.58L11 21l-6-6 6-6z"/>
                         </svg>
                     </button>
+                    <!-- cd top dir -->
                     <button type="button" onclick="javascript:cdRoot();" class="btn btn-link btn-sm border border-primary" data-toggle="tooltip" data-placement="top" title="Return to Root Dir">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
                             <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
                             <path d="M0 0h24v24H0z" fill="none"/>
                         </svg>
                     </button>
+                    <!-- File operation dropdown -->
+                    <button class="btn btn-sm btn-link border border-primary btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                            <path d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z"/>
+                        </svg>
+                    </button>
+                    <!-- File operation dropdown menu -->
+                    <div class="dropdown">
+                        <div class="dropdown-menu bg-secondary" aria-labelledby="dropdownMenuButton">
+                            <!-- Upload files -->
+                            <button type="button" class="btn btn-link btn-sm dropdown-item" data-toggle="modal" data-target="#UploadFileModal">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                                    <path d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                                </svg>
+                                Upload File
+                            </button>
+                            <!-- Delete files -->
+                            <button type="button" class="btn btn-link btn-sm dropdown-item" onclick="javascript:deleteFilePrepare();">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                                    <path fill="none" d="M0 0h24v24H0V0z"/>
+                                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zm2.46-7.12l1.41-1.41L12 12.59l2.12-2.12 1.41 1.41L13.41 14l2.12 2.12-1.41 1.41L12 15.41l-2.12 2.12-1.41-1.41L10.59 14l-2.13-2.12zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/>
+                                    <path fill="none" d="M0 0h24v24H0z"/>
+                                </svg>
+                                Delete File
+                            </button>
+                            <!-- Move file -->
+                            <button type="button" class="btn btn-link btn-sm dropdown-item" onclick="javascript:moveFilePrepare();">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                                    <path d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M11.59 7.41L15.17 11H1v2h14.17l-3.59 3.59L13 18l6-6-6-6-1.41 1.41zM20 6v12h2V6h-2z"/>
+                                </svg>
+                                Move File
+                            </button>
+                        </div>
+                    </div>
                 </span>
                 <div>
                     <span class="float-right text-light" data-currentPath="{{currentPath}}" style="margin-left: 5px;margin-top:3px;">Your location:{{currentPath}}</span>
@@ -46,7 +90,6 @@
             </div>
                 <span class="float-left">
                     <a id="ChangeTheme" class="text-light" href="javascript:switchTheme();">Light Theme</a>
-                    <a id="FileViewLarge" class="text-light" href="javascript:"></a>  <!-- TODO -->
                 </span>
             </nav>
         <div id="UploadInfoFileView" class="d-none">
@@ -54,6 +97,17 @@
             <div class="progress">
                 <div id="UploadProgressFileView" class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
             </div>
+        </div>
+        <!-- Toggle Modal -->
+        <div id="DeleteFileConfirm" class="d-none">
+            <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#fileDeleteModal" onclick="appendModifyFilesToModal('filesToDelete')">
+                DELETE
+            </button>
+        </div>
+        <div id="MoveFileConfirm" class="d-none">
+            <button type="button" class="btn btn-danger btn-block" data-toggle="modal" data-target="#fileMoveModal" onclick="appendModifyFilesToModal('fileToMove')">
+                MOVE FILES
+            </button>
         </div>
         <!-- FILES -->
         <div class="row">
@@ -65,21 +119,21 @@
                         </h4>
                     </div>
                     <div id="listFiles" class="panel-collapse collapse show">
-                        <ul class="list-group">
+                        <ul class="list-group" id="Files">
                             {% if files %}
                                 {% for f_filename, file_attr in files.items() %}
                                     {% if file_attr[1] %}
                                         <li class="list-group-item bg-dark" id="DIR">
-                                            <span class="float-left">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                                                    <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
-                                                    <path d="M0 0h24v24H0z" fill="none"/>
-                                                </svg>
-                                            </span>
+                                            <div class="CheckBoxHolder float-left d-none" style="margin-right: 5px;"><input type="checkbox" class="fileSelected" data-targetpath="{{file_attr[0]}}"></div>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                                <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                                                <path d="M0 0h24v24H0z" fill="none"/>
+                                            </svg>
                                             <a href="{{file_attr[0]}}/">{{f_filename}}</a>
                                         </li>
                                     {% else %}
                                         <li class="list-group-item bg-dark" id="FILE">
+                                            <div class="CheckBoxHolder float-left d-none" style="margin-right: 5px;"><input type="checkbox" class="fileSelected" data-targetpath="{{file_attr[0]}}"></div>
                                             <a href="{{file_attr[0]}}">{{f_filename}}</a>
                                             <span class="float-right">
                                                 <a class="text-primary" style="margin-right: 5px;" onclick="javascript:getFileInfo('{{f_filename}}');">View Details</a>
@@ -90,7 +144,7 @@
                                 {% endfor %}
                             {% else %}
                                 <li class="list-group-item bg-dark">
-                                    <div class="text-center text-danger">No files avaliable</div>
+                                    <div class="text-center text-danger">No files available</div>
                                 </li>
                             {% endif %}
                         </ul>
@@ -162,9 +216,9 @@
         <!-- Modal Upload -->
         <div class="modal fade" id="UploadFileModal" tabindex="-1" role="dialog" aria-labelledby="UploadFileModalTitle" aria-hidden="true">
             <div class="modal-dialog" role="document">
-                <div class="modal-content">
+                <div class="modal-content bg-dark">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="UploadFileModalTitle">Upload File</h5>  <!-- Check if anyfiles selected before upload -->
+                        <h5 class="modal-title text-light" id="UploadFileModalTitle">Upload File</h5>  <!-- Check if anyfiles selected before upload -->
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                         </button>
@@ -173,7 +227,7 @@
                         <form id="uploadFileForm">
                             <div class="form-group">
                                 <div class="custom-file">
-                                    <input name="File" type="file" class="form-control" id="uploadFileInput" aria-describedby="uploadFileInput" onchange="javascript:setUploadFileLabel();" multiple>
+                                    <input name="File" type="file" class="form-control bg-secondary" id="uploadFileInput" aria-describedby="uploadFileInput" onchange="javascript:setUploadFileLabel();" multiple>
                                     <label class="custom-file-label mb-3" id="fileToUpload" for="uploadFileInput">Choose file</label>
                                 </div>
                             </div>
@@ -198,9 +252,9 @@
         <!-- Modal Login -->
         <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
-                <div class="modal-content">
+                <div class="modal-content bg-dark">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                        <h5 class="modal-title text-light" id="loginModalLabel">Login</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                         </button>
@@ -214,14 +268,14 @@
                         </div>
                         <form>
                             <div class="form-group">
-                                <label for="loginInputUsername">Username</label>
-                                <input type="email" class="form-control" id="loginInputUsername" placeholder="Enter Username">
+                                <label class="text-light" for="loginInputUsername">Username</label>
+                                <input type="text" class="form-control bg-secondary text-light" id="loginInputUsername" placeholder="Enter Username">
                             </div>
                             <div class="form-group">
-                                <label for="loginInputPassword">Password</label>
-                                <input type="password" class="form-control" id="loginInputPassword" placeholder="Password">
+                                <label class="text-light" for="loginInputPassword">Password</label>
+                                <input type="password" class="form-control bg-secondary text-light" id="loginInputPassword" placeholder="Password">
                             </div>
-                            <button onclick="user_login();" class="btn btn-primary btn-block">Login</button>
+                            <button type="button" onclick="javascript:userLogin();" class="btn btn-primary btn-block">Login</button>
                         </form>
                     </div>
                     <div class="modal-footer">
@@ -230,5 +284,55 @@
                 </div>
             </div>
         </div>
+        <!-- Modal Delete file  -->
+        <div class="modal fade" id="fileDeleteModal" tabindex="-1" role="dialog" aria-labelledby="fileDeleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content bg-secondary">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-light" id="fileDeleteModalLabel">You are about to delete following files</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <span>
+                            <ul class="list-group" id="filesToDelete"></ul>
+                        </span>
+                        <div id="DeleteFileStatusFailed">
+                            <span id="DeleteFileStatusFailedText" class="d-none text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:deleteFileCleanUp();">Cancel</button>
+                        <button type="button" class="btn btn-danger" onclick="javascript:deleteFileExecute();">DELETE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal Move file  -->
+        <div class="modal fade" id="fileMoveModal" tabindex="-1" role="dialog" aria-labelledby="fileMoveModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="fileMoveModalLabel">You are about to move following files</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                                <span>
+                                    <ul class="list-group" id="fileToMove"></ul>
+                                <span>
+                            Choose Destination:
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:moveFileCleanUp();">Cancel</button>
+                            <button type="button" class="btn btn-danger" onclick="javascript:moveFileExecute();">Move</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
     </body>
 </html>
