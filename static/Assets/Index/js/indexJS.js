@@ -444,3 +444,19 @@ function deleteFileCleanUp()
     uncheckCheckBoxFiles();
     emptyModalFileContent("filesToDelete");
 }
+
+
+function makeDir()
+{
+    function makeDirCallBack(resp) {
+        let json = JSON.parse(resp);
+        console.log(json);
+    }
+
+    let dir_name = $("#DirectoryNameInput").val();
+    let dir_location = window.location.pathname + dir_name
+    console.log(dir_location)
+    let data = JSON.stringify({"DIR": [dir_location]});
+    let url = window.location.protocol + "//" + window.location.hostname + "/Mkdir";
+    sendPOSTRequest(url, data, makeDirCallBack)
+}

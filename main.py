@@ -24,17 +24,18 @@ def load_config_from_file():
     use_secure_filename = server_cfg.getboolean("SECUREFILENAME")
     upload_auth_required = server_cfg.getboolean("UPLOAD_AUTH_REQUIRED")
     delete_auth_required = server_cfg.getboolean("DELETE_AUTH_REQUIRED")
+    mkdir_auth_required = server_cfg.getboolean("MKDIR_AUTH_REQUIRED")
     jwt_valid_time = int(server_cfg.get("JWT_VALID_FOR"))
     config(db_uri,
         secret_key,
         file_dir,
         JWT_valid_time=jwt_valid_time, 
-        secure_upload_filename=secure_filename, 
+        secure_upload_filename=use_secure_filename, 
         upload_auth_required=upload_auth_required,
         delete_auth_required=delete_auth_required)
 
 
-def config(database_uri, secret_key, fileDir, JWT_valid_time=86400, secure_upload_filename=True, upload_auth_required=True, delete_auth_required=True):
+def config(database_uri, secret_key, fileDir, JWT_valid_time=86400, secure_upload_filename=True, upload_auth_required=True, delete_auth_required=True, mkdir_auth_required=True):
     """
     Config the server
 
@@ -51,6 +52,7 @@ def config(database_uri, secret_key, fileDir, JWT_valid_time=86400, secure_uploa
     app.config.update({"SECUREFILENAME": secure_upload_filename})
     app.config.update({"UPLOAD_AUTH_REQUIRED": upload_auth_required})
     app.config.update({"DELETE_AUTH_REQUIRED": delete_auth_required})
+    app.config.update({"MKDIR_AUTH_REQUIRED": mkdir_auth_required})
     app.config.update({"JWT_VALID_FOR": JWT_valid_time})
     if not secure_upload_filename:
         app.logger.warning("SECURE UPLOAD FILE NAME IS DISABLED. THIS MIGHT CAUSE UNEXPECTED CONSEQUENCES")
@@ -63,7 +65,6 @@ load_config_from_file()
 
 bcrypt = Bcrypt(app=app)
 db = SQLAlchemy(app)
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -132,6 +133,10 @@ def JWT_validate(encoded_jwt, remote_addr):
 
 def JWT_issue(ipaddr):
     return jwt.encode({"CREATED": time.time(), "VALIDFOR": app.config["JWT_VALID_FOR"], "ISSUEDFOR": ipaddr}, app.config["SECRET_KEY"])
+
+
+def make_abs_path_from_url(uri):
+    return app.config["FILEDIR"] + uri if uri[0] == "/" or uri[0] == "\\" else app.config["FILEDIR"] + "/" + uri
 
 
 def creation_date(path_to_file):
@@ -226,6 +231,38 @@ def move_file():
     return make_json_resp_with_status({"STATUS": 1337, "Details": "Feature Working In Progress"}, 501)
 
 
+@app.route("/Mkdir", methods=["POST"])
+def make_dir():
+    if app.config["MKDIR_AUTH_REQUIRED"]:
+        try:
+            jwt_token = request.cookies["AUTH_TOKEN"]
+        except KeyError as noToken:
+            return make_json_resp_with_status({"STATUS": 5,"Details": "Unable to create directory, Authentication required."}, 401)
+
+        if not JWT_validate(jwt_token, request.remote_addr):
+            return make_json_resp_with_status({"STATUS": 5,"Details": "Unable to create directory, Authentication required."}, 401)
+
+
+    try:
+        # DIR JSON: {"DIR": ["/asdsf", "/ifasd", "/asdsf/asdfasdf"]}
+        dirs = request.get_json()
+        dir_list = dirs.get("DIR")
+        
+        for directories in dir_list:
+            dir_abs_path = make_abs_path_from_url(directories)
+            os.mkdir(dir_abs_path)
+
+        return make_json_resp_with_status({"STATUS": 0, "Details": "Success"}, 200)
+
+    except PermissionError:
+        return make_json_resp_with_status({"STATUS": 1, "Details": "Unable to create directory, Access to resource is denied by OS"}, 403)
+    except FileExistsError:
+        return make_json_resp_with_status({"STATUS": 3, "Details": "Unable to create directory, Directory already exist"}, 400)
+    except Exception as error:
+        return make_json_resp_with_status({"STATUS": 3, "Details": "Unable to create directory, An Exception occurred: {}".format(error)}, 500)
+
+
+
 @app.route("/Delete", methods=["DELETE", "POST"])
 def delete_file():
     file_list = request.get_json()  # Posted JSON {"FILES": [ListOfFiles]}
@@ -243,8 +280,7 @@ def delete_file():
     try:
         file_list = file_list.get("FILES")
         for file in file_list:
-            file_path = app.config["FILEDIR"] + file if file[0] == "/" or file[0] == "\\" else app.config["FILEDIR"] + "/" + file
-            file_abs_path = os.path.abspath(file_path)
+            file_abs_path = make_abs_path_from_url(file)
             if os.path.isdir(file_abs_path):
                 rmtree(file_abs_path)
             else:
@@ -275,9 +311,7 @@ def upload_file():
     except:
         return make_json_resp_with_status({"STATUS": 2, "Details": "Unable to upload file, Desnation not specified"}, 400)
 
-    dst_dir_abs_path = os.path.abspath(app.config["FILEDIR"] + "/" + dst_dir)
-    if dst_dir_abs_path[-1] != "/" or dst_dir_abs_path[-1] != "\\":
-        dst_dir_abs_path += "/"
+    dir_abs_path = make_abs_path_from_url(dst_dir)
 
     files = request.files.getlist("File")
     for file in files:
