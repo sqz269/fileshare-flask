@@ -11,7 +11,6 @@ import jwt
 import time
 import magic
 import os
-import platform
 
 
 def load_config_from_file():
@@ -21,20 +20,21 @@ def load_config_from_file():
     db_uri = server_cfg.get("DATABASE_URI")
     secret_key = server_cfg.get("SECRET_KEY")
     file_dir = server_cfg.get("FILEDIR")
-    use_secure_filename = server_cfg.getboolean("SECUREFILENAME")
+    use_secure_filename = server_cfg.getboolean("SECURE_UPLOAD_FILENAME")
     upload_auth_required = server_cfg.getboolean("UPLOAD_AUTH_REQUIRED")
     delete_auth_required = server_cfg.getboolean("DELETE_AUTH_REQUIRED")
+    mkdir_auth_required = server_cfg.getboolean("MKDIR_AUTH_REQUIRED")
     jwt_valid_time = int(server_cfg.get("JWT_VALID_FOR"))
     config(db_uri,
         secret_key,
         file_dir,
         JWT_valid_time=jwt_valid_time, 
-        secure_upload_filename=secure_filename, 
+        secure_upload_filename=use_secure_filename, 
         upload_auth_required=upload_auth_required,
         delete_auth_required=delete_auth_required)
 
 
-def config(database_uri, secret_key, fileDir, JWT_valid_time=86400, secure_upload_filename=True, upload_auth_required=True, delete_auth_required=True):
+def config(database_uri, secret_key, fileDir, JWT_valid_time=86400, secure_upload_filename=True, upload_auth_required=True, delete_auth_required=True, mkdir_auth_required=True):
     """
     Config the server
 
@@ -51,6 +51,7 @@ def config(database_uri, secret_key, fileDir, JWT_valid_time=86400, secure_uploa
     app.config.update({"SECUREFILENAME": secure_upload_filename})
     app.config.update({"UPLOAD_AUTH_REQUIRED": upload_auth_required})
     app.config.update({"DELETE_AUTH_REQUIRED": delete_auth_required})
+    app.config.update({"MKDIR_AUTH_REQUIRED": mkdir_auth_required})
     app.config.update({"JWT_VALID_FOR": JWT_valid_time})
     if not secure_upload_filename:
         app.logger.warning("SECURE UPLOAD FILE NAME IS DISABLED. THIS MIGHT CAUSE UNEXPECTED CONSEQUENCES")
@@ -63,7 +64,6 @@ load_config_from_file()
 
 bcrypt = Bcrypt(app=app)
 db = SQLAlchemy(app)
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -78,6 +78,13 @@ class User(db.Model):
 
 
 def database_add_user(username, password_plain_text):
+    """
+    Add a new user to the database
+
+    :Args:
+        username (str) The user's username
+        password_plain_text (str) The user's password that is in plain text form (will be encrypted using bCrypt before adding to database)
+    """
     user = User(username=username, password=bcrypt.generate_password_hash(password_plain_text.encode("utf-8")))
     db.session.add(user)
     db.session.commit()
@@ -113,6 +120,16 @@ def database_user_auth(username, password_plain_text):
 
 
 def make_json_resp_with_status(json_data, http_status):
+    """
+    Return JSON Response with a valid HTTP Status code
+
+    :Args:
+        json_data (dict) Json that will be send 
+        http_status (int) HTTP status code that will be included in the response
+
+    :Return:
+        Flask response_class object (with mimetype: application/json)
+    """
     response = app.response_class(response=json.dumps(json_data),
                                 status=http_status,
                                 mimetype='application/json')
@@ -120,6 +137,16 @@ def make_json_resp_with_status(json_data, http_status):
 
 
 def JWT_validate(encoded_jwt, remote_addr):
+    """
+    Check if a Json Web Token (Used to store login sessions) is valid
+
+    :Args:
+        encoded_jwt (str) the json web token encoded (send from the client)
+        remote_addr (str) the ip address of the client
+
+    :Return:
+        (bool) True if the web token is valid else return false
+    """
     try:
         jwt_decoded = jwt.decode(encoded_jwt, app.config["SECRET_KEY"])
         created = jwt_decoded["CREATED"]
@@ -131,7 +158,31 @@ def JWT_validate(encoded_jwt, remote_addr):
 
 
 def JWT_issue(ipaddr):
+    """
+    Generate a Json Web Token to indicate login sessions
+        Includes Creation date, Validation Time, Client Address
+        Token Encoded with "SECRET_KEY" as key
+
+    :Args:
+        ipaddr (str) Client's ip address
+
+    :Return:
+        (str) Json web token
+    """
     return jwt.encode({"CREATED": time.time(), "VALIDFOR": app.config["JWT_VALID_FOR"], "ISSUEDFOR": ipaddr}, app.config["SECRET_KEY"])
+
+
+def make_abs_path_from_url(uri):
+    """
+    Make abslute path from requested URI
+
+    :Args:
+        uri (str) uri the user requested
+
+    :Return:
+        (str) the abs path made from the uri that points to the file/dir the user requested 
+    """
+    return app.config["FILEDIR"] + uri if uri[0] == "/" or uri[0] == "\\" else app.config["FILEDIR"] + "/" + uri
 
 
 def creation_date(path_to_file):
@@ -140,7 +191,7 @@ def creation_date(path_to_file):
     last modified if that isn't possible.
     See http://stackoverflow.com/a/39501288/1709587 for explanation.
     """
-    if platform.system() == 'Windows':
+    if os.name == 'nt':  # If the os running on is windowsNT
         return os.path.getctime(path_to_file)
     else:
         stat = os.stat(path_to_file)
@@ -226,6 +277,44 @@ def move_file():
     return make_json_resp_with_status({"STATUS": 1337, "Details": "Feature Working In Progress"}, 501)
 
 
+@app.route("/GetDirectories", methods=["POST"])
+def get_all_dirs():
+    dirs = next(os.walk('.'))[1]
+    list_of_dir = {"DIRS": dirs}
+    return make_json_resp_with_status(list_of_dir, 200)
+
+@app.route("/Mkdir", methods=["POST"])
+def make_dir():
+    if app.config["MKDIR_AUTH_REQUIRED"]:
+        try:
+            jwt_token = request.cookies["AUTH_TOKEN"]
+        except KeyError as noToken:
+            return make_json_resp_with_status({"STATUS": 5,"Details": "Unable to create directory, Authentication required."}, 401)
+
+        if not JWT_validate(jwt_token, request.remote_addr):
+            return make_json_resp_with_status({"STATUS": 5,"Details": "Unable to create directory, Authentication required."}, 401)
+
+
+    try:
+        # DIR JSON: {"DIR": ["/asdsf", "/ifasd", "/asdsf/asdfasdf"]}
+        dirs = request.get_json()
+        dir_list = dirs.get("DIR")
+        
+        for directories in dir_list:
+            dir_abs_path = make_abs_path_from_url(directories)
+            os.mkdir(dir_abs_path)
+
+        return make_json_resp_with_status({"STATUS": 0, "Details": "Success"}, 200)
+
+    except PermissionError:
+        return make_json_resp_with_status({"STATUS": 1, "Details": "Unable to create directory, Access to resource is denied by OS"}, 403)
+    except FileExistsError:
+        return make_json_resp_with_status({"STATUS": 3, "Details": "Unable to create directory, Directory already exist"}, 400)
+    except Exception as error:
+        return make_json_resp_with_status({"STATUS": 3, "Details": "Unable to create directory, An Exception occurred: {}".format(error)}, 500)
+
+
+
 @app.route("/Delete", methods=["DELETE", "POST"])
 def delete_file():
     file_list = request.get_json()  # Posted JSON {"FILES": [ListOfFiles]}
@@ -243,8 +332,8 @@ def delete_file():
     try:
         file_list = file_list.get("FILES")
         for file in file_list:
-            file_path = app.config["FILEDIR"] + file if file[0] == "/" or file[0] == "\\" else app.config["FILEDIR"] + "/" + file
-            file_abs_path = os.path.abspath(file_path)
+            file_abs_path = make_abs_path_from_url(file)
+            app.logger.critical("Attempting to delete: {}".format(file_abs_path))
             if os.path.isdir(file_abs_path):
                 rmtree(file_abs_path)
             else:
@@ -275,9 +364,7 @@ def upload_file():
     except:
         return make_json_resp_with_status({"STATUS": 2, "Details": "Unable to upload file, Desnation not specified"}, 400)
 
-    dst_dir_abs_path = os.path.abspath(app.config["FILEDIR"] + "/" + dst_dir)
-    if dst_dir_abs_path[-1] != "/" or dst_dir_abs_path[-1] != "\\":
-        dst_dir_abs_path += "/"
+    dir_abs_path = make_abs_path_from_url(dst_dir)
 
     files = request.files.getlist("File")
     for file in files:
@@ -285,7 +372,7 @@ def upload_file():
             file_name = file.filename
         else:
             file_name = secure_filename(file.filename)
-        dst_abs_path = dst_dir_abs_path + file_name
+        dst_abs_path = dir_abs_path + file_name
         file.save(dst_abs_path)
 
     return make_json_resp_with_status({"STATUS": 0, "Details": "File uploaded successfully"}, 200)
@@ -366,4 +453,4 @@ def serve(ipaddr, port, debug=False):
 
 
 if __name__ == "__main__":
-    serve("192.168.29.219", 80)
+    serve("localhost", 80, debug=True)

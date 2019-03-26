@@ -70,6 +70,6 @@ while True:
             continue
         else:
             break
-    except BrokenPipeError as e:
+    except Exception as e:
         print("Failed to add new user. Exception occurred: {}".format(e))
         break

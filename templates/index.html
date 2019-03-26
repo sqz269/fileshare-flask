@@ -3,21 +3,19 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
+
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="{{url_for("static", filename="Assets/Shared/js/bootstrap.min.js")}}" type="text/javascript"></script>
         <script src="{{url_for("static", filename="Assets/Index/js/indexJS.js")}}" type="text/javascript"></script>
+        <script src="{{url_for("static", filename="Assets/Shared/js/bootstrap-treeview.min.js")}}" type="text/javascript"></script>
+
         <link href="{{url_for("static", filename="Assets/Shared/css/bootstrap.min.css")}}" rel="stylesheet" type="text/css" />
+        <link href="{{url_for("static", filename="Assets/Shared/css/bootstrap-treeview.min.css")}}" rel="stylesheet" type="text/css" />
     </head>
 
     <body class="bg-secondary" id="body">
-        <div id="fileUploadSuccessBanner" class="alert alert-success alert-dismissible fade show d-none" role="alert">
-            Your file has been successfully uploaded. <strong><a href=".">Reload Page</a></strong>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-        <div id="fileDeleteSuccessBanner" class="alert alert-success alert-dismissible fade show d-none" role="alert">
-            Files has been deleted. <strong><a href=".">Reload Page</a></strong>
+        <div id="operationSuccessBanner" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+            <span id="bannerMessage"></span> <strong><a href=".">Reload Page</a></strong>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -81,6 +79,14 @@
                                 </svg>
                                 Move File
                             </button>
+                            <!-- mkdir -->
+                            <button type="button" class="btn btn-link btn-sm dropdown-item" onclick="" data-toggle="modal" data-target="#makeDIRModal" >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                    <path fill="none" d="M0 0h24v24H0V0z"/>
+                                    <path d="M20 6h-8l-2-2H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-1 8h-3v3h-2v-3h-3v-2h3V9h2v3h3v2z"/>
+                                </svg>
+                                Make Dir
+                            </button>
                         </div>
                     </div>
                 </span>
@@ -129,12 +135,12 @@
                                                 <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
                                                 <path d="M0 0h24v24H0z" fill="none"/>
                                             </svg>
-                                            <a href="{{file_attr[0]}}/">{{f_filename}}</a>
+                                            <a style="word-break: break-all;" href="{{file_attr[0]}}/">{{f_filename}}</a>
                                         </li>
                                     {% else %}
                                         <li class="list-group-item bg-dark" id="FILE">
                                             <div class="CheckBoxHolder float-left d-none" style="margin-right: 5px;"><input type="checkbox" class="fileSelected" data-targetpath="{{file_attr[0]}}"></div>
-                                            <a href="{{file_attr[0]}}">{{f_filename}}</a>
+                                            <a style="word-break: break-all;" href="{{file_attr[0]}}">{{f_filename}}</a>
                                             <span class="float-right">
                                                 <a class="text-primary" style="margin-right: 5px;" onclick="javascript:getFileInfo('{{f_filename}}');">View Details</a>
                                                 <a href="{{file_attr[0]}}" download={{f_filename}}>Download</a>
@@ -287,7 +293,7 @@
         <!-- Modal Delete file  -->
         <div class="modal fade" id="fileDeleteModal" tabindex="-1" role="dialog" aria-labelledby="fileDeleteModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
-                <div class="modal-content bg-secondary">
+                <div class="modal-content bg-dark">
                     <div class="modal-header">
                         <h5 class="modal-title text-light" id="fileDeleteModalLabel">You are about to delete following files</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -312,27 +318,52 @@
         </div>
         <!-- Modal Move file  -->
         <div class="modal fade" id="fileMoveModal" tabindex="-1" role="dialog" aria-labelledby="fileMoveModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="fileMoveModalLabel">You are about to move following files</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                                <span>
-                                    <ul class="list-group" id="fileToMove"></ul>
-                                <span>
-                            Choose Destination:
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:moveFileCleanUp();">Cancel</button>
-                            <button type="button" class="btn btn-danger" onclick="javascript:moveFileExecute();">Move</button>
-                        </div>
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="fileMoveModalLabel">You are about to move following files</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <span>
+                            <ul class="list-group" id="fileToMove"></ul>
+                        <span>
+                        <hr>
+                        <button type="button" class="btn btn-primary">Choose Destination</button>
+                        <div id="treeview-selectable" class="treeview"><ul class="list-group"><li class="list-group-item node-treeview-selectable search-result" data-nodeid="0" style="color:#D9534F;background-color:undefined;"><span class="icon expand-icon glyphicon glyphicon-plus"></span><span class="icon node-icon"></span>Parent 1</li><li class="list-group-item node-treeview-selectable" data-nodeid="5" style="color:undefined;background-color:undefined;"><span class="icon glyphicon"></span><span class="icon node-icon"></span>Parent 2</li><li class="list-group-item node-treeview-selectable" data-nodeid="6" style="color:undefined;background-color:undefined;"><span class="icon glyphicon"></span><span class="icon node-icon"></span>Parent 3</li><li class="list-group-item node-treeview-selectable" data-nodeid="7" style="color:undefined;background-color:undefined;"><span class="icon glyphicon"></span><span class="icon node-icon"></span>Parent 4</li><li class="list-group-item node-treeview-selectable" data-nodeid="8" style="color:undefined;background-color:undefined;"><span class="icon glyphicon"></span><span class="icon node-icon"></span>Parent 5</li></ul></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="javascript:moveFileCleanUp();">Cancel</button>
+                        <button type="button" class="btn btn-danger" onclick="javascript:moveFileExecute();">Move</button>
                     </div>
                 </div>
             </div>
+        </div>
+        <!-- Modal Make DIR -->
+        <div class="modal fade" id="makeDIRModal" tabindex="-1" role="dialog" aria-labelledby="makeDIRModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content bg-dark">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-light" id="makeDIRModalLabel">New Folder</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input id="DirectoryNameInput" type="text" class="form-control" placeholder="Directory Name" aria-describedby="basic-addon1">
+                        <div id="MakeDIRStatusFailed">
+                            <span id="MakeDIRStatusFailedText" class="d-none text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger" onclick="javascript:makeDir();">Create</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
