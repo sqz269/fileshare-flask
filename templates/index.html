@@ -3,21 +3,19 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
+
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="{{url_for("static", filename="Assets/Shared/js/bootstrap.min.js")}}" type="text/javascript"></script>
         <script src="{{url_for("static", filename="Assets/Index/js/indexJS.js")}}" type="text/javascript"></script>
+        <script src="{{url_for("static", filename="Assets/Shared/js/bootstrap-treeview.min.js")}}" type="text/javascript"></script>
+
         <link href="{{url_for("static", filename="Assets/Shared/css/bootstrap.min.css")}}" rel="stylesheet" type="text/css" />
+        <link href="{{url_for("static", filename="Assets/Shared/css/bootstrap-treeview.min.css")}}" rel="stylesheet" type="text/css" />
     </head>
 
     <body class="bg-secondary" id="body">
-        <div id="fileUploadSuccessBanner" class="alert alert-success alert-dismissible fade show d-none" role="alert">
-            Your file has been successfully uploaded. <strong><a href=".">Reload Page</a></strong>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-        <div id="fileDeleteSuccessBanner" class="alert alert-success alert-dismissible fade show d-none" role="alert">
-            Files has been deleted. <strong><a href=".">Reload Page</a></strong>
+        <div id="operationSuccessBanner" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+            <span id="bannerMessage"></span> <strong><a href=".">Reload Page</a></strong>
             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
@@ -295,7 +293,7 @@
         <!-- Modal Delete file  -->
         <div class="modal fade" id="fileDeleteModal" tabindex="-1" role="dialog" aria-labelledby="fileDeleteModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
-                <div class="modal-content bg-secondary">
+                <div class="modal-content bg-dark">
                     <div class="modal-header">
                         <h5 class="modal-title text-light" id="fileDeleteModalLabel">You are about to delete following files</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -329,10 +327,12 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                            <span>
-                                <ul class="list-group" id="fileToMove"></ul>
-                            <span>
-                        Choose Destination:
+                        <span>
+                            <ul class="list-group" id="fileToMove"></ul>
+                        <span>
+                        <hr>
+                        <button type="button" class="btn btn-primary">Choose Destination</button>
+                        <div id="treeview-selectable" class="treeview"><ul class="list-group"><li class="list-group-item node-treeview-selectable search-result" data-nodeid="0" style="color:#D9534F;background-color:undefined;"><span class="icon expand-icon glyphicon glyphicon-plus"></span><span class="icon node-icon"></span>Parent 1</li><li class="list-group-item node-treeview-selectable" data-nodeid="5" style="color:undefined;background-color:undefined;"><span class="icon glyphicon"></span><span class="icon node-icon"></span>Parent 2</li><li class="list-group-item node-treeview-selectable" data-nodeid="6" style="color:undefined;background-color:undefined;"><span class="icon glyphicon"></span><span class="icon node-icon"></span>Parent 3</li><li class="list-group-item node-treeview-selectable" data-nodeid="7" style="color:undefined;background-color:undefined;"><span class="icon glyphicon"></span><span class="icon node-icon"></span>Parent 4</li><li class="list-group-item node-treeview-selectable" data-nodeid="8" style="color:undefined;background-color:undefined;"><span class="icon glyphicon"></span><span class="icon node-icon"></span>Parent 5</li></ul></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -345,15 +345,18 @@
         <!-- Modal Make DIR -->
         <div class="modal fade" id="makeDIRModal" tabindex="-1" role="dialog" aria-labelledby="makeDIRModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
-                <div class="modal-content">
+                <div class="modal-content bg-dark">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="makeDIRModalLabel">New Folder</h5>
+                        <h5 class="modal-title text-light" id="makeDIRModalLabel">New Folder</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
                         <input id="DirectoryNameInput" type="text" class="form-control" placeholder="Directory Name" aria-describedby="basic-addon1">
+                        <div id="MakeDIRStatusFailed">
+                            <span id="MakeDIRStatusFailedText" class="d-none text-danger"></span>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

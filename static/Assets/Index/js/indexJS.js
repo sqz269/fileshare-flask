@@ -74,6 +74,8 @@ window.onload = function()
 
 }
 
+// Upload related functions (start)
+
 function uploadStartChange()
 {
     $("#UploadInfo").toggleClass("d-none d-block"); // show upload progress bar
@@ -88,7 +90,8 @@ function uploadStartChange()
 
 function uploadFinishChangeSuccess() 
 {
-    $("#fileUploadSuccessBanner").toggleClass("d-none d-show");
+    $("#bannerMessage").html("Your file has been successfully uploaded.");
+    $("#operationSuccessBanner").toggleClass("d-none d-show");
 
     $("#UploadInfo").toggleClass("d-block d-none"); // hide upload progress bar
     $("#UploadProgress").removeClass("progress-bar-animated"); // remove animation on the progress bar
@@ -200,30 +203,11 @@ $(document).ready(function() {  // Credit to https://www.youtube.com/watch?v=f-w
 	});
 });
 
+// Upload file related function (ends)
 
 function moveFile()
 {
-    // Sending and receiving data in JSON format using POST method
-    let xhr = new XMLHttpRequest();
-    let url = window.location.protocol + "//" + window.location.hostname + "/Move";
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            var authStatus = JSON.parse(xhr.responseText);
-            if (authStatus["STATUS"] === 0){
-                $("#loginStatusSuccess").toggleClass("d-none d-show");
-            }
-            else {
-                $("#loginStatusFail").toggleClass("d-none d-show");
-            }
-            console.log(authStatus);
-        }
-    };
 
-    let data = JSON.stringify({"USERNAME": username, "PASSWORD": password});
-    console.log(data);
-    xhr.send(data);
 }
 
 function userLogin()
@@ -427,7 +411,8 @@ function deleteFileExecute()
             $("#DeleteFileStatusFailedText").html(details);
         }
         else {
-            $("#fileDeleteSuccessBanner").toggleClass("d-none d-show");
+            $("#bannerMessage").html("Files has been deleted.");
+            $("#operationSuccessBanner").toggleClass("d-none d-show");
         }
     }    
 
@@ -449,8 +434,20 @@ function deleteFileCleanUp()
 function makeDir()
 {
     function makeDirCallBack(resp) {
+        console.log("Server Response: " + resp);
         let json = JSON.parse(resp);
-        console.log(json);
+        let status = json.STATUS;
+        let details = json.Details;
+        console.log("Status " + status);
+        console.log("Details " + details)
+        if (status != 0){
+            $("#MakeDIRStatusFailedText").toggleClass("d-none d-show");
+            $("#MakeDIRStatusFailedText").html(details);
+        }
+        else {
+            $("#bannerMessage").html("Directory has been created");
+            $("#operationSuccessBanner").toggleClass("d-none d-show");
+        }
     }
 
     let dir_name = $("#DirectoryNameInput").val();
