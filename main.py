@@ -182,6 +182,7 @@ def make_abs_path_from_url(uri):
     :Return:
         (str) the abs path made from the uri that points to the file/dir the user requested 
     """
+    uri = unquote(uri)
     return app.config["FILEDIR"] + uri if uri[0] == "/" or uri[0] == "\\" else app.config["FILEDIR"] + "/" + uri
 
 
@@ -365,7 +366,7 @@ def upload_file():
         return make_json_resp_with_status({"STATUS": 2, "Details": "Unable to upload file, Desnation not specified"}, 400)
 
     dst_dir = unquote(dst_dir)  # Unescape encoded sequence
-
+    app.logger.critical(dst_dir)
     dir_abs_path = make_abs_path_from_url(dst_dir)
 
     files = request.files.getlist("File")
