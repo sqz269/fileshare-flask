@@ -364,6 +364,8 @@ def upload_file():
     except:
         return make_json_resp_with_status({"STATUS": 2, "Details": "Unable to upload file, Desnation not specified"}, 400)
 
+    dst_dir = unquote(dst_dir)  # Unescape encoded sequence
+
     dir_abs_path = make_abs_path_from_url(dst_dir)
 
     files = request.files.getlist("File")
