@@ -9,7 +9,7 @@
  * @param {Selector} elementToAppend a jquery selector that points to the table the element will be appended to
  *                                   Default value is #file-container
  */
-function fileContainerAddItemEx(fname, fpath, size, lastMod, isDir, elementToAppend="#file-container")
+function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppend="#file-container")
 {
     $templateElement = $("#file-template").clone(false);
     $templateElement.removeAttr("id");
