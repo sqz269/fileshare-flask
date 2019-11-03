@@ -1,11 +1,14 @@
-<div class="d-none" id="file-template">
+<div class="d-none">
+    <img id="img-file" src="{{ url_for('site.static', filename='assets/file.svg') }}">
+    <img id="img-dir" src="{{ url_for('site.static', filename='assets/directory.svg') }}">
     <table>
-        <tr>
-            <th scope="row" id="tpl-selection">1</th>
-            <td id="tpl-filename">PLACE_HOLDER</td>
-            <td id="tpl-size">PLACE_HOLDER</td>
-            <td id="tpl-lastmod">Open in new tab</td>
-            <td><a href="#">Open in new tab</a></td>
+        <tr id="file-template">
+            <th scope="row"class="text-center"><input id="file-selection" type="checkbox" value=""></th>
+            <td class="text-center"><div id="file-type" class="svg-icon"></div></td>
+            <td><a id="file-name" href="#"></a></td>
+            <td id="file-lastmod"></td>
+            <td id="file-size"></td>
+            <td><a id="file-operation-newtab" href="#">Open in new tab</a></td>
         </tr>
     </table>
 </div>
@@ -19,34 +22,30 @@
         <thead>
 
         <tr>
-            <th style="width: 25px;">#</th>
-            <th>File Name</th>
-            <th class="col-1">Last Modified</th>
-            <th class="col-1">File Size (MB)</th>
-            <th class="col-2">Operation</th>
+            <th style="width:3%" class="text-center">
+                <input type="checkbox" value="all">
+            </th>
+            <th style="width:3%;">Type</th>
+            <th style="width:60%">Name</th>
+            <th style="width:10%">Last Modified</th>
+            <th style="width:10%">Size(MB)</th>
+            <th style="width:14%">Operation</th>
         </tr>
         </thead>
         <!--Table head-->
 
         <!--Table body-->
-        <tbody>
+        <tbody id="file-container">
 
         <tr>
-            <th scope="row">
+            <th scope="row" class="text-center">
                 <img src="{{ url_for('site.static', filename='assets/parent.svg') }}">
             </th>
-            <th colspan="4">
+            <th colspan="5">
                 <a href="#">Go to parent directory</a>
             </th>
         </tr>
 
-        <tr>
-            <th scope="row">1</th>
-            <td>PLACE_HOLDER</td>
-            <td>PLACE_HOLDER</td>
-            <td>0</td>
-            <td><a href="#">Open in new tab</a></td>
-        </tr>
         </tbody>
         <!--Table body-->
 
