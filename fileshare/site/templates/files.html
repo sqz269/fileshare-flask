@@ -1,0 +1,56 @@
+<div class="d-none" id="file-template">
+    <table>
+        <tr>
+            <th scope="row" id="tpl-selection">1</th>
+            <td id="tpl-filename">PLACE_HOLDER</td>
+            <td id="tpl-size">PLACE_HOLDER</td>
+            <td id="tpl-lastmod">Open in new tab</td>
+            <td><a href="#">Open in new tab</a></td>
+        </tr>
+    </table>
+</div>
+
+<div class="table-responsive">
+
+    <!--Table-->
+    <table class="table table-striped">
+
+        <!--Table head-->
+        <thead>
+
+        <tr>
+            <th style="width: 25px;">#</th>
+            <th>File Name</th>
+            <th class="col-1">Last Modified</th>
+            <th class="col-1">File Size (MB)</th>
+            <th class="col-2">Operation</th>
+        </tr>
+        </thead>
+        <!--Table head-->
+
+        <!--Table body-->
+        <tbody>
+
+        <tr>
+            <th scope="row">
+                <img src="{{ url_for('site.static', filename='assets/parent.svg') }}">
+            </th>
+            <th colspan="4">
+                <a href="#">Go to parent directory</a>
+            </th>
+        </tr>
+
+        <tr>
+            <th scope="row">1</th>
+            <td>PLACE_HOLDER</td>
+            <td>PLACE_HOLDER</td>
+            <td>0</td>
+            <td><a href="#">Open in new tab</a></td>
+        </tr>
+        </tbody>
+        <!--Table body-->
+
+    </table>
+    <!--Table-->
+
+</div>

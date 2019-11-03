@@ -1,0 +1,26 @@
+.svg-icon 
+{
+    display: inline-flex;
+    align-self: center;
+}
+.svg-icon svg 
+{
+    height:1em;
+    width:1em; 
+}
+    
+.svg-icon.svg-baseline svg 
+{
+    top: .125em;
+    position: relative;
+}
+.td-btn {
+    display: block;
+    margin: auto;
+}
+
+.btn-align {
+    padding: 6px 12px;
+    line-height: 1.42857143;
+    vertical-align: middle;
+}
