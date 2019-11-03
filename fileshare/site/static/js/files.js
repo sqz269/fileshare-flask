@@ -1,4 +1,4 @@
-function changeDirectionParent()
+function changeDirectory()
 {
 
 }
@@ -6,4 +6,9 @@ function changeDirectionParent()
 function refresh()
 {
     
+}
+
+function setURLCurrentDirectory(cPath)
+{
+    history.pushState({path: cPath}, "", `?path=${cPath}`)
 }

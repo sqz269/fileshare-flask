@@ -126,3 +126,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.vs/fileshare-flask/v16/.suo
+.vs/ProjectSettings.json
+.vs/slnx.sqlite
+.vs/VSWorkspaceState.json
+.vscode/settings.json
