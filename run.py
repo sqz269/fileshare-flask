@@ -3,4 +3,5 @@ from fileshare.libs.configurationMgr import ConfigurationMgr
 
 initCfg = ConfigurationMgr().read_config("config.ini")
 
-app.run("localhost", 3000, debug=True)
+if __name__ == "__main__":
+    app.run("localhost", 3000, debug=True)
