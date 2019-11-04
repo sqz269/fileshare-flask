@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from werkzeug import secure_filename
 
 from fileshare.libs.configurationMgr import ConfigurationMgr
 from fileshare.api.libs import paths
@@ -37,6 +38,24 @@ def process_access_password():
 		return make_json_resp_with_status({"status": 1, "details": "Access password is disabled"}, 400)
 
 
-@api.route("/test")
-def test():
-    return "THIS IS A TEST"
+@site.route('/', defaults={'path': ''}, methods=["POST"])
+@site.route('/<path:path>', methods=["POST"])
+def list_dir(path):
+	pass
+
+
+@site.route('/', defaults={'path': ''}, methods=["PUT"])
+@site.route('/<path:path>', methods=["PUT"])
+def upload(path):
+	pass
+
+
+@site.route('/', defaults={'path': ''}, methods=["POST"])
+@site.route('/<path:path>', methods=["POST"])
+def delete(path):
+	pass
+
+
+@api.route("/login")
+def login():
+	pass

@@ -90,7 +90,8 @@ def make_abs_path_from_url(uri, file_directory, fix_nt_path=True):
         AssertionError : If the path made is invalid
     """
     uri = unquote(uri)
-    os.path.join(file_directory, uri)
+
+    path = os.path.join(file_directory, uri.lstrip("/"))  # Remove the / in the front else the join will recognize it as root
 
     if is_pathname_valid(path):
         if os.name == 'nt' and fix_nt_path:
@@ -115,7 +116,7 @@ def fix_long_windows_path(path):
     return long_path.encode()
 
 
-def list_files_from_url(url, file_directory):  # TODO: Refactor this func
+def list_files_from_url(url, file_directory):
     """
     List all files & directories under a folder
 
@@ -135,7 +136,6 @@ def list_files_from_url(url, file_directory):  # TODO: Refactor this func
     :Raise:
         FileNotFoundError when a directory requested for list does not exist
     """
-    if not url: url = "/"
     try:
         path = make_abs_path_from_url(url, file_directory)
     except AssertionError: return {}
@@ -145,7 +145,7 @@ def list_files_from_url(url, file_directory):  # TODO: Refactor this func
 
     contents = {}
     for content in os.listdir(path):  # listdir returns a list of relative path for the file
-        content = content.decode()  # Because arg passed in to listdir is byte, the return value will be byte also
+        content = content.decode()  # Because arg passed in to listdir is byte, the return value will also be bytes
         # url_path_for_file = url + content if url[-1] == "/" else url + "/" + content
 
         url_path_for_file = url + content
