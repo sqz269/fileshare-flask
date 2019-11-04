@@ -17,7 +17,7 @@ def jwt_validate(src_jwt: str, key: str) -> bool:
     """
     try:
         jwt_decoded = jwt.decode(src_jwt, key)
-        return (time.time() < jwt_decoded["VALIDFOR"] + jwt_decoded["CREATED"])
+        return (time.time() < (int(jwt_decoded["VALIDFOR"]) + int(jwt_decoded["CREATED"])))
     except jwt.InvalidSignatureError:
         return False
 
@@ -33,7 +33,7 @@ def jwt_issue(valid_length: int, key: str):
     :Return:
         (Bytes) encoded jwt (returned by function jwt.encode)
     """
-    return jwt.encode({"CREATED": time.time(), "VALIDFOR": valid_length}, key)
+    return jwt.encode({"CREATED": time.time(), "VALIDFOR": int(valid_length)}, key)
 
 
 def make_json_resp_with_status(data: dict, status: int) -> Response:

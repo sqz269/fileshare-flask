@@ -16,7 +16,7 @@ Known Status returned by json
 3 - Invalid Password/Login
 """
 
-@api.route("/password", methods=["POST"])
+@api.route("/access-password", methods=["POST"])
 def process_access_password():
 	# Password json looks like { "password": password }
 	if configuration.config.get("ACCESS_PASSWORD"):  # If access_password is enabled
