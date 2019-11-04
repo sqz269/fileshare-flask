@@ -1,6 +1,9 @@
 # Visual studio code workspace file
 *.code-workspace
 
+# Gitpod workspace
+.theia
+
 # Vs code python server cache
 .vscode/cache
 

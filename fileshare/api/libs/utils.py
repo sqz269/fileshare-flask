@@ -2,6 +2,31 @@ import jwt
 import time
 import json
 from flask import Response, jsonify, Flask
+from flask import request  # For type hinting
+from fileshare.libs.configurationMgr import ConfigurationMgr
+
+configuration = ConfigurationMgr()
+
+
+def is_access_token_valid(cookies: request) -> bool:
+    """
+    Check if an access token (required by configuration "ACCESS_PASSWORD") is a valid token
+
+    :Args:
+        cookies (request.cookies -> dict) dictionary of cookies
+
+    :Return:
+        (bool) True if the access token is valid, false if it is not
+    """
+    if 'AccessToken' in cookies:
+        return jwt_validate(cookies['AccessToken'],
+                            configuration.config.get('JWT_SECRET_KEY'))
+    return False
+
+
+def is_login_token_valid(cookies: request) -> bool:
+    pass
+
 
 # issued jwt looks like {"CREATED": <UNIX TIMESTAMP>, "VALIDFOR": <Seconds>}
 def jwt_validate(src_jwt: str, key: str) -> bool:
@@ -38,7 +63,7 @@ def jwt_issue(valid_length: int, key: str):
 
 def make_json_resp_with_status(data: dict, status: int) -> Response:
     """
-    Creates a response object with at status code and json 
+    Creates a response object with at status code and json
     the mimetype will be 'application/json'
 
     :Arg:

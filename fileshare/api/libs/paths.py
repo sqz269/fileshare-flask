@@ -107,7 +107,7 @@ def fix_long_windows_path(path):
     https://stackoverflow.com/questions/1880321/why-does-the-260-character-path-length-limit-exist-in-windows
 
     :Args:
-        path (str) path to the file that needed to be modified to work 
+        path (str) path to the file that needed to be modified to work
 
     :Return:
         (bytes) path that with \\?\ prefixed with all forward slashes (/) replaced by backward slash (\\) and encoded
@@ -143,23 +143,4 @@ def list_files_from_url(url, file_directory):
     if url[-1] != "/":
         url = url + "/"
 
-    contents = {}
-    for content in os.listdir(path):  # listdir returns a list of relative path for the file
-        content = content.decode()  # Because arg passed in to listdir is byte, the return value will also be bytes
-        # url_path_for_file = url + content if url[-1] == "/" else url + "/" + content
-
-        url_path_for_file = url + content
-
-        if not (url_path_for_file[0] == "/"):
-            content_abs_path = file_directory + "/" + url_path_for_file
-        else:
-            content_abs_path = file_directory + url_path_for_file
-        # contents.update({content: {"path": url_path_for_file, 
-        #                            "is_dir": os.path.isdir(content_abs_path)}
-        #                            # "created" :
-        #                            # "size": 
-        #                            })
-
-        contents.update({content: [url_path_for_file, os.path.isdir(content_abs_path)]})
-
-    return contents
+    content = {}
