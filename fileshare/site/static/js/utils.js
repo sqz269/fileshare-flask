@@ -1,6 +1,6 @@
 /**
  * Send a XHR Request to a specific url with data
- * @param {string} url the URL to send the XHR Request to 
+ * @param {string} url the URL to send the XHR Request to
  * @param {object} data the data that will be send with the request
  * @param {Function} callBack the function that will be called upon the XHR is done
  * @param {string} contentType the Conetent-Type header value (default application/json)
@@ -20,14 +20,35 @@ function sendPostRequest(url, data, callBack, contentType = "application/json", 
     xhr.send(data);
 }
 
+/**
+ * Get url paramaters
+ * https://html-online.com/articles/get-url-parameters-javascript/
+ *
+ * @returns {string} the value of the paramater
+ */
+function getUrlVars()
+{
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    return vars;
+}
+
+/**
+ * Convert a unix style time stamp to local time string with format
+ * YYYY/MM/DD HH:MM
+ * @param {number} timeStamp Unix time stamp to convert
+ */
 function cvtUnixTimeToLocalTime(timeStamp)
 {
     let date = new Date(timeStamp * 1000);
     // return date.toLocaleString();
     let cDate = ("0" + date.getDate()).slice(-2)
     let cMonth = ("0" + date.getMonth()).slice(-2)
-
-    return `${date.getFullYear()}/${cMonth}/${cDate} ${date.getHours()}:${date.getMinutes()}`
+    let cHours = ("0" + date.getHours()).slice(-2)
+    let cMin = ("0" + date.getMinutes()).slice(-2)
+    return `${date.getFullYear()}/${cMonth}/${cDate} ${cHours}:${cMin}`
 }
 
 /**
@@ -44,7 +65,7 @@ function switchClass(element, srcClass, dstClass)
 
 /**
  * Add class to the element if it hasn't exist already
- * 
+ *
  * @param {string} elementSelector : JQuery selector for the element
  * @param {string} addClass : Class to be added
  */
@@ -57,7 +78,7 @@ function addClassIfNotExist(elementSelector, addClass) {
 /**
  * Read a cookie with name
  * @param {string} name name of the cookie
- * 
+ *
  * @returns {string} the cookie value with the name
  */
 function readCookie(name) {

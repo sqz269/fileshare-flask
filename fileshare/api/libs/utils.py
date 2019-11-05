@@ -2,13 +2,12 @@ import jwt
 import time
 import json
 from flask import Response, jsonify, Flask
-from flask import request  # For type hinting
 from fileshare.libs.configurationMgr import ConfigurationMgr
 
 configuration = ConfigurationMgr()
 
 
-def is_access_token_valid(cookies: request) -> bool:
+def is_access_token_valid(cookies) -> bool:
     """
     Check if an access token (required by configuration "ACCESS_PASSWORD") is a valid token
 
@@ -24,7 +23,7 @@ def is_access_token_valid(cookies: request) -> bool:
     return False
 
 
-def is_login_token_valid(cookies: request) -> bool:
+def is_login_token_valid(cookies) -> bool:
     pass
 
 

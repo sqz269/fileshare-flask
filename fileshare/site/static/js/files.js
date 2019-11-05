@@ -1,12 +1,13 @@
 function changeDirectory(dst)
 {
-    sendPostRequest(dst, null, processFileResponse, undefined, undefined, dst);
+    sendPostRequest(`/api/files?path=${dst}`, null, processFileResponse, undefined, undefined, dst);
 }
 
 function processFileResponse(status, resp, dirDst)
 {
     if (status == 200)
     {
+        removeAllDisplayedFiles();
         resp = JSON.parse(resp);
         let path = Object.keys(resp)[0];
         setURLCurrentDirectory(path);
@@ -38,7 +39,7 @@ function processFileResponse(status, resp, dirDst)
 
 function refresh()
 {
-    
+
 }
 
 function setURLCurrentDirectory(cPath)

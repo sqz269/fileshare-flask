@@ -1,6 +1,6 @@
 /**
  * Create a new file item from #file-template and add it too an element
- * 
+ *
  * @param {string} fname the file name
  * @param {string} fpath file path
  * @param {number} size the size of the file (cosmetic purpose only)
@@ -28,6 +28,13 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
     $templateElement.appendTo(elementToAppend);
 }
 
+
+/**
+ * Set total files and dirs number to display
+ *
+ * @param {number} totalFile total file this directory contains
+ * @param {number} totalDir total directorys this dir contains
+ */
 function setTotalDirAndFile(totalFile, totalDir)
 {
     $("#file-count").html(totalFile);
@@ -35,9 +42,9 @@ function setTotalDirAndFile(totalFile, totalDir)
 }
 
 /**
- * 
+ * Remove all displayed file from the table except for the row with return to parent dir
  */
 function removeAllDisplayedFiles()
 {
-
+    $("#file-container").find("tr:gt(0)").remove();
 }
