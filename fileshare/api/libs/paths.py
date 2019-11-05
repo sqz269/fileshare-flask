@@ -76,7 +76,7 @@ def is_pathname_valid(pathname: str) -> bool:
     # Did we mention this should be shipped with Python already?
 
 
-def make_abs_path_from_url(uri, file_directory, fix_nt_path=True):
+def make_abs_path_from_url(uri, file_directory, fix_nt_path=True) -> bytes:
     """
     Make abslute path from requested URI
 
@@ -125,22 +125,53 @@ def list_files_from_url(url, file_directory):
         url_location (str)  A URL location used to point to the file (The file's parent directory's URL path)
 
     :Return:
-        (dict) {<FileName>: (<FilePath>, <IsDirectory>)};
+        (dict)  { <directory>:
+                    {<fileName>: {
+                        "isDir": <isFileDir {bool}>,
+                        "path": <fileUrlPath {str}>,
+                        "size": <fileSize> {int},
+                        "lastmod": <fileLastModDate {unix timestamp}>
+                    }}
+                }
 
-                <FileName> : (string) File name
-                <FilePath> : (String) URL path to the file;
-                <IsDirectory> : (bool) Is the file a directory;
-
-        return empty dict if the directory is empty
+        return empty dict if the directory is empty 
+               or it failed to construct a abslute path from the given url and file_directory
 
     :Raise:
         FileNotFoundError when a directory requested for list does not exist
     """
     try:
-        path = make_abs_path_from_url(url, file_directory)
+        path = make_abs_path_from_url(url, file_directory).decode()
     except AssertionError: return {}
 
-    if url[-1] != "/":
-        url = url + "/"
+    try:
+        if url[0] != "/":
+            url = "/" + url
+    except:
+        url = "/"
 
     content = {}
+
+    """
+    Content will look like 
+    { <directory>:
+        {<fileName>: {
+            "isDir": <isFileDir {bool}>,
+            "path": <fileUrlPath {str}>,
+            "size": <fileSize> {int},
+            "lastmod": <fileLastModDate {unix timestamp}>
+        }}
+    }
+
+    """
+    for file in os.listdir(path):
+        file_abs_path = os.path.join(path, file)
+        url_path = url + file if url[-1] == "/" else url + "/" + file
+        content.update({file: {
+            "isDir": os.path.isdir(file_abs_path),
+            "path": url_path,
+            "size": os.path.getsize(file_abs_path),
+            "lastmod": os.path.getmtime(file_abs_path)
+        }})
+
+    return {url: content}

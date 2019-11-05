@@ -7,19 +7,27 @@
  * @param {string} method the method of the requestion (POST, DELETE etc.) (default POST)
  * @param {boolean} debug if extra infomation will be needed when the request is completed
  */
-function sendPostRequest(url, data, callBack, contentType = "application/json", method = "POST", debug = false)
+function sendPostRequest(url, data, callBack, contentType = "application/json", method = "POST")
 {
     let xhr = new XMLHttpRequest();
     xhr.open(method, url, true);
     xhr.setRequestHeader("Content-Type", contentType);
     xhr.onreadystatechange = function() {
         if (xhr.readyState === XMLHttpRequest.DONE) {
-            if (debug)
-                console.log(`XHR Completed; Status: ${xhr.status} | Response: ${xhr.responseText}`);
             callBack(xhr.status, xhr.responseText);
         }
     };
     xhr.send(data);
+}
+
+function cvtUnixTimeToLocalTime(timeStamp)
+{
+    let date = new Date(timeStamp * 1000);
+    // return date.toLocaleString();
+    let cDate = ("0" + date.getDate()).slice(-2)
+    let cMonth = ("0" + date.getMonth()).slice(-2)
+
+    return `${date.getFullYear()}/${cMonth}/${cDate} ${date.getHours()}:${date.getMinutes()}`
 }
 
 /**

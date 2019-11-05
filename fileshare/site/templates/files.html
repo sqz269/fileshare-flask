@@ -8,7 +8,7 @@
             <td><a id="file-name" href="#"></a></td>
             <td id="file-lastmod"></td>
             <td id="file-size"></td>
-            <td><a id="file-operation-newtab" href="#">Open in new tab</a></td>
+            <td><a id="file-operation-newtab" href="#">Open (New Tab)</a></td>
         </tr>
     </table>
 </div>
@@ -25,11 +25,11 @@
             <th style="width:3%" class="text-center">
                 <input type="checkbox" value="all">
             </th>
-            <th style="width:3%;">Type</th>
+            <th style="width:2%;">Type</th>
             <th style="width:60%">Name</th>
-            <th style="width:10%" class="text-nowrap">Last Modified</th>
-            <th style="width:10%">Size(MB)</th>
-            <th style="width:14%">Operation</th>
+            <th style="width:15%" class="text-nowrap">Last Modified</th>
+            <th style="width:7%">Size(KB)</th>
+            <th style="width:13%">Operation</th>
         </tr>
         </thead>
         <!--Table head-->
@@ -41,8 +41,13 @@
             <th scope="row" class="text-center">
                 <img src="{{ url_for('site.static', filename='assets/parent.svg') }}">
             </th>
-            <th colspan="5">
+            <th colspan="3">
                 <a href="#">Go to parent directory</a>
+            </th>
+            <th class="border-left-1 border-dark" colspan="2">
+                <div class="d-flex justify-content-between">
+                    <span id="file-count">0</span><span>Files</span> <span id="dir-count">0</span><span>Dirs</span>
+                </div>
             </th>
         </tr>
 

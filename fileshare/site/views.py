@@ -12,7 +12,6 @@ configuration = ConfigurationMgr()
 @site.route('/', defaults={'path': ''})
 @site.route('/<path:path>')
 def homepage(path):
-    print("Request received in homepage function")
     if configuration.config.get("ACCESS_PASSWORD"):
         if is_access_token_valid(request.cookies):
             return render_template("index.html")

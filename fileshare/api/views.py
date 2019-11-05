@@ -49,14 +49,13 @@ def login():
 # /api/files?path=<path_of_file>
 @api.route('files', methods=["POST"])
 def list_dir():
-    print("Request Received in list dir function")
     path = request.args.get('path')
     if not path:
         return make_json_resp_with_status({"status": 2, "details": "Required url paramater 'path' is not provided"}, 400)
 
     if configuration.config.get("ACCESS_PASSWORD"):
         if not is_access_token_valid(request.cookies):
-            return make_json_resp_with_status({"status": 4, "details": "Access Token is invalid/expired please enter it again"})
+            return make_json_resp_with_status({"status": 4, "details": "Access Token is invalid/expired"}, 401)
 
     dir_data = paths.list_files_from_url(path, configuration.config.get("SHARED_DIR"))
     return make_json_resp_with_status(dir_data, 200)
