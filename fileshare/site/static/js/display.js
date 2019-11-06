@@ -15,11 +15,12 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
     $templateElement.removeAttr("id");
     $templateElement.find("#file-selection").attr("value", fname).removeAttr("id");
 
+    let $img;
     if (isDir)
     // Use the folder image if the file type is a directory else use a file image
-        let $img = $("#img-dir").clone(false).removeAttr("id");
+        $img = $("#img-dir").clone(false).removeAttr("id");
     else
-        let $img = $("#img-file").clone(false).removeAttr("id");
+        $img = $("#img-file").clone(false).removeAttr("id");
     $templateElement.find("#file-type").append($img).removeAttr("id");
 
     if (isDir)
