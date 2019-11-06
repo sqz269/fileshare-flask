@@ -1,16 +1,25 @@
+/**
+ * Change current directory, a wrapper for sendRequest
+ * Actually does nothing other than do a sendRequest function
+ * 
+ * @param {string} dst The destination directory
+ */
 function changeDirectory(dst)
 {
-    sendPostRequest(`/api/files?path=${dst}`, null, processFileResponse, undefined, undefined, dst);
+    sendRequest(`/api/files?path=${dst}`, null, processFileResponse);
 }
 
+/**
+ * Move to parent directory, similar to "cd .." command 
+ */
 function changeDirectoryParent()
 {
     let currentPath = getUrlVars()["path"];
     if (currentPath)
     {
-        let currentPathSplit = currentPath.split("/");
-        let newPath = currentPathSplit.slice(0, currentPathSplit.length - 1).join("/")
-        if (!newPath)
+        let currentPathSplit = currentPath.split("/"); // Split the path to arrays
+        let newPath = currentPathSplit.slice(0, currentPathSplit.length - 1).join("/") // Join every segment of the path except for the last part
+        if (!newPath)  // If the joined path is empty that means the parent path must be root
             newPath = "/"
         changeDirectory(newPath);
     }
@@ -20,7 +29,22 @@ function changeDirectoryParent()
     }
 }
 
-function processFileResponse(status, resp, dirDst)
+/**
+ * Processes response from a change directory response and sets the files/dir to display
+ * which the reposes looks like
+ *  { <directory>:
+        {<fileName>: {
+            "isDir": <isFileDir {bool}>,
+            "path": <fileUrlPath {str}>,
+            "size": <fileSize> {int},
+            "lastmod": <fileLastModDate {unix timestamp}>
+        }}
+    }
+ * 
+ * @param {number} status The completed XHR status
+ * @param {string} resp the stringified JSON Object that contains the file information
+ */
+function processFileResponse(status, resp)
 {
     if (status == 200)
     {
@@ -32,7 +56,7 @@ function processFileResponse(status, resp, dirDst)
         let totalDirCount = 0;
         let totalFileCount = 0;
 
-        for (let dir in resp[path])
+        for (let dir in resp[path])  // Loop though all files and check if they are a directory and show them first
         {
             if (resp[path][dir].isDir)
             {
@@ -41,7 +65,7 @@ function processFileResponse(status, resp, dirDst)
             }
         }
 
-        for (let file in resp[path])
+        for (let file in resp[path])  // then show all the remaining files
         {
             if (!resp[path][file].isDir)
             {
@@ -59,6 +83,11 @@ function refresh()
 
 }
 
+/**
+ * Change the url paramter "?path=" with out reload the page
+ * 
+ * @param {string} cPath current working directory
+ */
 function setURLCurrentDirectory(cPath)
 {
     history.pushState({path: cPath}, "", `?path=${cPath}`)

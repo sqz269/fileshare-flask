@@ -16,12 +16,14 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
     $templateElement.find("#file-selection").attr("value", fname).removeAttr("id");
 
     if (isDir)
+    // Use the folder image if the file type is a directory else use a file image
         $img = $("#img-dir").clone(false).removeAttr("id")
     else
         $img = $("#img-file").clone(false).removeAttr("id")
     $templateElement.find("#file-type").append($img).removeAttr("id");
 
     if (isDir)
+        // Call changeDirectory if the clicked file is a directory, else we'll directly link the file which the server will serve
         $templateElement.find("#file-name").attr("href", `javascript:changeDirectory("${fpath}");`).html(fname).removeAttr("id");
     else
         $templateElement.find("#file-name").attr("href", fpath).html(fname).removeAttr("id");

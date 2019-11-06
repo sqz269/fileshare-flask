@@ -7,7 +7,7 @@
  * @param {string} method the method of the requestion (POST, DELETE etc.) (default POST)
  * @param {boolean} debug if extra infomation will be needed when the request is completed
  */
-function sendPostRequest(url, data, callBack, contentType = "application/json", method = "POST")
+function sendRequest(url, data, callBack, contentType = "application/json", method = "POST")
 {
     let xhr = new XMLHttpRequest();
     xhr.open(method, url, true);
