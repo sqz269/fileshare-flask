@@ -32,7 +32,15 @@ def files(path):
             # If the user want us to automatically determin the mime type of the file
             # we can serve stuff like img/vid directly instead of having to download
             abs_path = make_abs_path_from_url(path, configuration.config.get("SHARED_DIR"))
-            f_mime = mime.from_file(abs_path)
+
+            # Sometime libmagic fails with unicode file names, then we have to open them and pass it to read_buffer
+            # https://stackoverflow.com/questions/34836792/python-magic-cant-identify-unicode-filename
+
+            # f_mime = mime.from_file(abs_path)
+            with open(abs_path, "rb") as file:
+                f_mime = mime.from_buffer(file.read(1024))
+
+            # print("Detected mime type for file: {} | type: {}".format(path, f_mime))
         if configuration.config.get("FILE_MIME"):
             f_mime = configuration.config.get("FILE_MIME")
 
