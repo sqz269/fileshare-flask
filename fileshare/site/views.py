@@ -23,7 +23,6 @@ def homepage():
         return render_template("index.html")
 
 
-@site.route('/', defaults={'path': ''})
 @site.route('/<path:path>')
 def files(path):
     try:
@@ -48,6 +47,6 @@ def files(path):
                 return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime)
             else:
                 return render_template("password.html")
-        return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime, as_attachment=True)
+        return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime)
     except (PermissionError, FileNotFoundError):
         return render_template("error/404.html")
