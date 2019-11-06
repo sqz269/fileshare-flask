@@ -28,12 +28,13 @@ def homepage():
 @site.route('/<path:path>')
 def files(path):
     try:
-        if configuration.config.get("DETECT_FILE_MIME"):
+        if configuration.config.get("DETECT_FILE_MIME"):  
+            # If the user want us to automatically determin the mime type of the file
+            # we can serve stuff like img/vid directly instead of having to download
             abs_path = make_abs_path_from_url(path, configuration.config.get("SHARED_DIR"))
             f_mime = mime.from_file(abs_path)
         if configuration.config.get("FILE_MIME"):
             f_mime = configuration.config.get("FILE_MIME")
-
 
         if configuration.config.get("ACCESS_PASSWORD"):
             if is_access_token_valid(request.cookies):

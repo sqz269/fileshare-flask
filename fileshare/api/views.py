@@ -49,7 +49,7 @@ def login():
 # /api/files?path=<path_of_file>
 @api.route('files', methods=["POST"])
 def list_dir():
-    path = request.args.get('path')
+    path = request.args.get('path')  # Get the argument <url>?path=
     if not path:
         return make_json_resp_with_status({"status": 2, "details": "Required url paramater 'path' is not provided"}, 400)
 

@@ -1,5 +1,10 @@
 flask
 colorama
 pyjwt
+
+# If libmagic failes to install use the package "python-magic-bin"
+# Besure to do "pip uninstall libmagic python-magic before you install this
+# Full intall command: pip install python-magic-bin==0.4.14
+
 libmagic
 python-magic

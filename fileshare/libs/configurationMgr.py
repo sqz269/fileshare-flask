@@ -38,6 +38,12 @@ class ConfigurationMgr(object, metaclass=Singleton):
 
 
     def read_config(self, path):
+        """
+        Read and loads a config from a specific path to self.config
+
+        :Args:
+            path (str) a path points the the file to read the configuration from
+        """
         cfg = configparser.ConfigParser()
         cfg.read(path)
 
