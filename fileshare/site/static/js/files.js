@@ -3,6 +3,23 @@ function changeDirectory(dst)
     sendPostRequest(`/api/files?path=${dst}`, null, processFileResponse, undefined, undefined, dst);
 }
 
+function changeDirectoryParent()
+{
+    let currentPath = getUrlVars()["path"];
+    if (currentPath)
+    {
+        let currentPathSplit = currentPath.split("/");
+        let newPath = currentPathSplit.slice(0, currentPathSplit.length - 1).join("/")
+        if (!newPath)
+            newPath = "/"
+        changeDirectory(newPath);
+    }
+    else
+    {
+        changeDirectory("/");
+    }
+}
+
 function processFileResponse(status, resp, dirDst)
 {
     if (status == 200)

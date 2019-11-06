@@ -21,10 +21,19 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
         $img = $("#img-file").clone(false).removeAttr("id")
     $templateElement.find("#file-type").append($img).removeAttr("id");
 
-    $templateElement.find("#file-name").attr("href", fpath).html(fname).removeAttr("id");
+    if (isDir)
+        $templateElement.find("#file-name").attr("href", `javascript:changeDirectory("${fpath}");`).html(fname).removeAttr("id");
+    else
+        $templateElement.find("#file-name").attr("href", fpath).html(fname).removeAttr("id");
+
     $templateElement.find("#file-lastmod").html(lastMod).removeAttr("id");
     $templateElement.find("#file-size").html(size).removeAttr("id");
-    $templateElement.find("#file-operation-newtab").attr("href", fpath).removeAttr("id");
+
+    if (isDir)
+        $templateElement.find("#file-operation-newtab").attr("href", `/?path=${fpath}`).attr("target", "_blank").removeAttr("id");
+    else
+        $templateElement.find("#file-operation-newtab").attr("href", fpath).attr("target", "_blank").removeAttr("id");
+    
     $templateElement.appendTo(elementToAppend);
 }
 

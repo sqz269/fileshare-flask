@@ -1,3 +1,5 @@
 flask
 colorama
 pyjwt
+libmagic
+python-magic
