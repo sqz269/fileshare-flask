@@ -1,10 +1,9 @@
-from flask import Blueprint, render_template, request, send_from_directory, send_file
+from flask import Blueprint, render_template, request, send_from_directory
 from fileshare.libs.configurationMgr import ConfigurationMgr
-from fileshare.api.libs.utils import jwt_validate, is_access_token_valid
+from fileshare.api.libs.utils import is_access_token_valid
 from fileshare.api.libs.paths import make_abs_path_from_url
 
 import magic
-import jwt
 
 site = Blueprint("site", __name__, template_folder="templates", static_folder="static", static_url_path="/site/static")
 

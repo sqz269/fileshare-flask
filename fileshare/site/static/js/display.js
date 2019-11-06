@@ -11,30 +11,38 @@
  */
 function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppend="#file-container")
 {
-    $templateElement = $("#file-template").clone(false);
+    let $templateElement = $("#file-template").clone(false);
     $templateElement.removeAttr("id");
     $templateElement.find("#file-selection").attr("value", fname).removeAttr("id");
 
     if (isDir)
     // Use the folder image if the file type is a directory else use a file image
-        $img = $("#img-dir").clone(false).removeAttr("id")
+        let $img = $("#img-dir").clone(false).removeAttr("id");
     else
-        $img = $("#img-file").clone(false).removeAttr("id")
+        let $img = $("#img-file").clone(false).removeAttr("id");
     $templateElement.find("#file-type").append($img).removeAttr("id");
 
     if (isDir)
-        // Call changeDirectory if the clicked file is a directory, else we'll directly link the file which the server will serve
+    // Call changeDirectory if the clicked file is a directory, else we'll directly link the file which the server will serve
+    {
         $templateElement.find("#file-name").attr("href", `javascript:changeDirectory("${fpath}");`).html(fname).removeAttr("id");
+    }
     else
+    {
         $templateElement.find("#file-name").attr("href", fpath).html(fname).removeAttr("id");
+    }
 
     $templateElement.find("#file-lastmod").html(lastMod).removeAttr("id");
     $templateElement.find("#file-size").html(size).removeAttr("id");
 
     if (isDir)
+    {
         $templateElement.find("#file-operation-newtab").attr("href", `/?path=${fpath}`).attr("target", "_blank").removeAttr("id");
+    }
     else
+    {
         $templateElement.find("#file-operation-newtab").attr("href", fpath).attr("target", "_blank").removeAttr("id");
+    }
     
     $templateElement.appendTo(elementToAppend);
 }

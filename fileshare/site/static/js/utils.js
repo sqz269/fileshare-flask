@@ -44,11 +44,11 @@ function cvtUnixTimeToLocalTime(timeStamp)
 {
     let date = new Date(timeStamp * 1000);
     // return date.toLocaleString();
-    let cDate = ("0" + date.getDate()).slice(-2)
-    let cMonth = ("0" + date.getMonth()).slice(-2)
-    let cHours = ("0" + date.getHours()).slice(-2)
-    let cMin = ("0" + date.getMinutes()).slice(-2)
-    return `${date.getFullYear()}/${cMonth}/${cDate} ${cHours}:${cMin}`
+    let cDate = ("0" + date.getDate()).slice(-2);
+    let cMonth = ("0" + date.getMonth()).slice(-2);
+    let cHours = ("0" + date.getHours()).slice(-2);
+    let cMin = ("0" + date.getMinutes()).slice(-2);
+    return `${date.getFullYear()}/${cMonth}/${cDate} ${cHours}:${cMin}`;
 }
 
 /**
@@ -60,7 +60,9 @@ function cvtUnixTimeToLocalTime(timeStamp)
 function switchClass(element, srcClass, dstClass)
 {
     if ($(element).hasClass(srcClass))
+    {
         $(element).removeClass(srcClass).addClass(dstClass);
+    }
 }
 
 /**

@@ -1,9 +1,9 @@
-from flask import Blueprint, jsonify, request
-from werkzeug import secure_filename
+from flask import Blueprint, request
+# from werkzeug import secure_filename
 
 from fileshare.libs.configurationMgr import ConfigurationMgr
 from fileshare.api.libs import paths
-from fileshare.api.libs.utils import make_json_resp_with_status, jwt_validate, jwt_issue, is_access_token_valid, is_requirements_met
+from fileshare.api.libs.utils import make_json_resp_with_status,jwt_issue, is_access_token_valid, is_requirements_met
 
 configuration = ConfigurationMgr()
 
