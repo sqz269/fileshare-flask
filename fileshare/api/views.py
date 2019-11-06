@@ -3,7 +3,7 @@ from werkzeug import secure_filename
 
 from fileshare.libs.configurationMgr import ConfigurationMgr
 from fileshare.api.libs import paths
-from fileshare.api.libs.utils import make_json_resp_with_status, jwt_validate, jwt_issue, is_access_token_valid
+from fileshare.api.libs.utils import make_json_resp_with_status, jwt_validate, jwt_issue, is_access_token_valid, is_requirements_met
 
 configuration = ConfigurationMgr()
 
@@ -61,11 +61,18 @@ def list_dir():
     return make_json_resp_with_status(dir_data, 200)
 
 
+# send PUT Request to files with argument path to specifiy the path
+# and argument filename to specifiy the filename
+# for example PUT /api/files?path=/example-path/&filename=test
+# will upload a file to /example-path/ with the filename of test
 @api.route('files', methods=["PUT"])
 def upload():
-    pass
+    if is_requirements_met("UPLOAD", request.cookie):
+        pass
+
 
 
 @api.route('files', methods=["POST"])
 def delete():
-    pass
+    if is_requirements_met("DELETE", request.cookie):
+        pass

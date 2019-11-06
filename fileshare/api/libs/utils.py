@@ -6,7 +6,6 @@ from fileshare.libs.configurationMgr import ConfigurationMgr
 
 configuration = ConfigurationMgr()
 
-
 def is_access_token_valid(cookies) -> bool:
     """
     Check if an access token (required by configuration "ACCESS_PASSWORD") is a valid token
@@ -24,7 +23,28 @@ def is_access_token_valid(cookies) -> bool:
 
 
 def is_login_token_valid(cookies) -> bool:
-    pass
+    if "LoginToken" in cookies:
+        return jwt_validate(cookies['LoginToken'],
+                            configuration.config.get('JWT_SECRET_KEY'))
+    return False
+
+
+def is_requirements_met(operation, cookies):
+    ops_to_privlige_name = {
+        "UPLOAD": "UPLOAD_AUTH_REQUIRED",
+        "DELETE": "DELETE_AUTH_REQUIRED",
+        "RENAME": "RENAME_AUTH_REQUIRED",
+        "MKDIR": "MKDIR_AUTH_REQUIRED"
+    }
+
+    current_privlige = [is_access_token_valid(cookies), is_login_token_valid(cookies)]
+
+    is_access_password_enabled = configuration.config.get("ACCESS_TOKEN") == True
+    # Convert the string to boolean to keep consistancy at required_privlige
+
+    required_privlige = [is_access_password_enabled,
+                        configuration.config.get(ops_to_privlige_name["operation"])] # [AccessPrivlige, LoginPrivlige]
+
 
 
 # issued jwt looks like {"CREATED": <UNIX TIMESTAMP>, "VALIDFOR": <Seconds>}

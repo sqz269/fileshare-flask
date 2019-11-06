@@ -28,7 +28,7 @@ def homepage():
 @site.route('/<path:path>')
 def files(path):
     try:
-        if configuration.config.get("DETECT_FILE_MIME"):  
+        if configuration.config.get("DETECT_FILE_MIME"):
             # If the user want us to automatically determin the mime type of the file
             # we can serve stuff like img/vid directly instead of having to download
             abs_path = make_abs_path_from_url(path, configuration.config.get("SHARED_DIR"))
@@ -40,7 +40,7 @@ def files(path):
             with open(abs_path, "rb") as file:
                 f_mime = mime.from_buffer(file.read(1024))
 
-            # print("Detected mime type for file: {} | type: {}".format(path, f_mime))
+            print("Detected mime type for file: {} | type: {}".format(path, f_mime))
         if configuration.config.get("FILE_MIME"):
             f_mime = configuration.config.get("FILE_MIME")
 
@@ -49,6 +49,6 @@ def files(path):
                 return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime)
             else:
                 return render_template("password.html")
-        return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime, as_attachment=True) 
+        return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime, as_attachment=True)
     except (PermissionError, FileNotFoundError):
         return render_template("error/404.html")
