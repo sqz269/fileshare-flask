@@ -30,21 +30,27 @@ def is_login_token_valid(cookies) -> bool:
 
 
 def is_requirements_met(operation, cookies):
-    ops_to_privlige_name = {
+    ops_to_privilege_name = {
         "UPLOAD": "UPLOAD_AUTH_REQUIRED",
         "DELETE": "DELETE_AUTH_REQUIRED",
         "RENAME": "RENAME_AUTH_REQUIRED",
         "MKDIR": "MKDIR_AUTH_REQUIRED"
     }
 
-    current_privlige = [is_access_token_valid(cookies), is_login_token_valid(cookies)]
+    current_privilege = [is_access_token_valid(cookies), is_login_token_valid(cookies)]
 
     is_access_password_enabled = configuration.config.get("ACCESS_TOKEN") == True
-    # Convert the string to boolean to keep consistancy at required_privlige
+    # Convert the string to boolean to keep consistency at required_privilege
 
-    required_privlige = [is_access_password_enabled,
-                        configuration.config.get(ops_to_privlige_name["operation"])] # [AccessPrivlige, LoginPrivlige]
+    required_privilege = [is_access_password_enabled,
+                        configuration.config.get(ops_to_privilege_name["operation"])] # [AccessPrivilege, LoginPrivilege]
 
+    for (required_priv, current_priv) in zip(required_privilege, current_privilege):
+        if not ((required_priv == current_priv) or (current_priv)):
+        # if the user does not have required privliege or they have the privliege but the server does not require the pri
+            return False
+    
+    return True
 
 
 # issued jwt looks like {"CREATED": <UNIX TIMESTAMP>, "VALIDFOR": <Seconds>}
