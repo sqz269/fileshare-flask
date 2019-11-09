@@ -27,8 +27,8 @@ function processFileResponse(status, resp)
 {
     if (status === 200)
     {
-        removeAllDisplayedFiles();
         resp = JSON.parse(resp);
+        removeAllDisplayedFiles();
         let path = Object.keys(resp)[0];
         setURLCurrentDirectory(path);
 
@@ -54,6 +54,11 @@ function processFileResponse(status, resp)
         }
 
         setTotalDirAndFile(totalFileCount, totalDirCount);
+    }
+    else
+    {
+        resp = JSON.parse(resp);
+        notifyUserError("Error", `Change directory failed with error code ${resp["status"]}. | Details: ${resp["details"]}`)
     }
 }
 
@@ -86,6 +91,20 @@ function changeDirectoryParent()
     {
         changeDirectory("/");
     }
+}
+
+
+function newFolder()
+{
+    let newFolderName =  $("#new-folder-name").val();
+    let newFolderPath = getUrlVars()["path"] + "/" + newFolderName;
+    console.log(`New folder url path: ${newFolderPath}`);
+    sendRequest(`/api/folders?path=${newFolderPath}`, null, newFolderCallback, null, "PUT");
+}
+
+function newFolderCallback(status, resp)
+{
+    console.log(`STATUS: ${status} | RESP: ${resp}`)
 }
 
 

@@ -5,7 +5,6 @@
  * @param {Function} callBack the function that will be called upon the XHR is done
  * @param {string} contentType the Conetent-Type header value (default application/json)
  * @param {string} method the method of the requestion (POST, DELETE etc.) (default POST)
- * @param {boolean} debug if extra infomation will be needed when the request is completed
  */
 function sendRequest(url, data, callBack, contentType = "application/json", method = "POST")
 {
