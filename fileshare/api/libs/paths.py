@@ -76,6 +76,14 @@ def is_pathname_valid(pathname: str) -> bool:
     # Did we mention this should be shipped with Python already?
 
 
+# def is_directory_traversal(file_name):
+#     current_directory = os.path.abspath(os.curdir)
+#     requested_path = os.path.relpath(file_name, start=current_directory)
+#     requested_path = os.path.abspath(requested_path)
+#     common_prefix = os.path.commonprefix([requested_path, current_directory])
+#     return common_prefix != current_directory
+
+
 def make_abs_path_from_url(uri, file_directory, fix_nt_path=True) -> bytes:
     """
     Make abslute path from requested URI
@@ -93,12 +101,18 @@ def make_abs_path_from_url(uri, file_directory, fix_nt_path=True) -> bytes:
 
     path = os.path.join(file_directory, uri.lstrip("/"))  # Remove the / in the front else the join will recognize it as root
 
+    if (os.path.commonprefix((os.path.realpath(path), file_directory)) != file_directory):  
+        # Prevent Directory Traversal Attack
+        # https://stackoverflow.com/questions/45188708/how-to-prevent-directory-traversal-attack-from-python-code
+        raise AssertionError("Bruh nice try")
+
     if is_pathname_valid(path):
         if os.name == 'nt' and fix_nt_path:
             return fix_long_windows_path(path)
         return path.encode()  # Be consistant with fix_long_windows_path so this func will always return bytes
 
-    raise AssertionError("Path Constructed is invalid")
+    # raise AssertionError("Path Constructed is invalid")
+    raise FileNotFoundError("INVALID PATH")
 
 
 def fix_long_windows_path(path):
@@ -136,13 +150,8 @@ def list_files_from_url(url, file_directory):
 
         return empty dict if the directory is empty 
                or it failed to construct a abslute path from the given url and file_directory
-
-    :Raise:
-        FileNotFoundError when a directory requested for list does not exist
     """
-    try:
-        path = make_abs_path_from_url(url, file_directory).decode()
-    except AssertionError: return {}
+    path = make_abs_path_from_url(url, file_directory).decode()
 
     try:
         if url[0] != "/":

@@ -5,6 +5,8 @@ from fileshare.libs.configurationMgr import ConfigurationMgr
 from fileshare.api.libs import paths
 from fileshare.api.libs.utils import make_json_resp_with_status,jwt_issue, is_access_token_valid, is_requirements_met
 
+import os
+
 configuration = ConfigurationMgr()
 
 api = Blueprint("api", __name__, url_prefix="/api")
@@ -12,12 +14,20 @@ api = Blueprint("api", __name__, url_prefix="/api")
 """
 Known Status returned by json
 0 - Operation was successful
+
+User Errors
 1 - Feature is not in use
 2 - Required data/fields are not provided
 3 - Invalid Password/Login
 4 - Access Token is invalid
 5 - Login Token is invalid
 6 - Login Token or Access Token is invalid
+
+Resource Related Errors
+100 - Resource with the same name already exist
+101 - Access to resource has been denied by the Operating System
+102 - Invalid/Illegal Path has been provided
+103 - Path provided does not exist
 """
 
 @api.route("/access-password", methods=["POST"])
@@ -62,7 +72,13 @@ def list_dir():
     if not path:
         return make_json_resp_with_status({"status": 2, "details": "Required url paramater 'path' is not provided"}, 400)
 
-    dir_data = paths.list_files_from_url(path, configuration.config.get("SHARED_DIR"))
+    try:
+        dir_data = paths.list_files_from_url(path, configuration.config.get("SHARED_DIR"))
+    except AssertionError:
+        return make_json_resp_with_status({"status": 102, "details": "Illegal Path provided"}, 400)
+    except FileNotFoundError:
+        return make_json_resp_with_status({"status": 103, "details": "Path: {} does not exist".format(path)}, 404)
+
     return make_json_resp_with_status(dir_data, 200)
 
 
@@ -108,5 +124,3 @@ def delete():
 def new_folder():
     if not is_requirements_met("MKDIR", request.cookies):
         return make_json_resp_with_status({"status": 6, "details": "Login Token or  Access Token is invalid"}, 401)
-
-    
