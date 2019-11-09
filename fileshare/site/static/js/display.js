@@ -68,3 +68,37 @@ function removeAllDisplayedFiles()
 {
     $("#file-container").find("tr:gt(0)").remove();
 }
+
+/**
+ * Set the label for how many files are selected and the names of those file
+ */
+function setUploadFileLabel()
+{
+    let fileInputElement = document.getElementById("file-upload");  // get file input element
+    if ("files" in fileInputElement)   // if there are files selected
+    {
+        if (!fileInputElement.files.length) // if no files are selected
+        {
+            $("#file-upload-label").html("Choose file");
+        }
+        else  // if files are selected
+        {
+            let totalFiles = 0;
+            for (let i = 0; i < fileInputElement.files.length; i++)  // Count files in total
+            {
+                let file = fileInputElement.files[i]; 
+                totalFiles += 1;
+            }
+            if (totalFiles > 1)  // if there is more than one file selected
+            { 
+                let firstFileName = fileInputElement.files[0].name
+                $("#file-upload-label").html(firstFileName + " and " + (totalFiles - 1) + " More");
+            }
+            else  // if only one files are selected
+            {
+                let firstFileName = fileInputElement.files[0].name
+                $("#file-upload-label").html(firstFileName);
+            }
+        }
+    }
+}

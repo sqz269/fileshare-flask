@@ -5,10 +5,10 @@
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <ul class="nav nav-pills">
             <li class="nav-item">
-                <button class="btn btn-primary m-1" href="#"><div><img class="p-1" src="{{ url_for('site.static', filename='assets/upload.svg') }}"/>Upload</div></button>
+                <button class="btn btn-primary m-1" data-toggle="modal" data-target="#upload-modal"><div><img class="p-1" src="{{ url_for('site.static', filename='assets/upload.svg') }}"/>Upload</div></button>
             </li>
             <li class="nav-item">
-                <button class="btn btn-primary m-1" href="#"><img class="p-1" src="{{ url_for('site.static', filename='assets/new_folder.svg') }}"/>New Folder</button>
+                <button class="btn btn-primary m-1" data-toggle="modal" data-target="#new-folder-modal"><img class="p-1" src="{{ url_for('site.static', filename='assets/new_folder.svg') }}"/>New Folder</button>
             </li>
             <li class="nav-item">
                 <button class="btn btn-primary m-1" href="#"><div><img class="p-1" src="{{ url_for('site.static', filename='assets/download.svg') }}"/>Download</div></button>
@@ -20,7 +20,7 @@
                 <button class="btn btn-success m-1" href="#"><img class="p-1" src="{{ url_for('site.static', filename='assets/move.svg') }}"/>Move</button>
             </li>
             <li class="nav-item">
-                <button class="btn btn-danger m-1" href="#"><img class="p-1" src="{{ url_for('site.static', filename='assets/delete.svg') }}"/>Delete</button>
+                <button class="btn btn-danger m-1" data-toggle="modal" data-target="#delete-modal"><img class="p-1" src="{{ url_for('site.static', filename='assets/delete.svg') }}"/>Delete</button>
             </li>
         </ul>
     </div>

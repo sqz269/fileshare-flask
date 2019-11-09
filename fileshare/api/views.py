@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-# from werkzeug import secure_filename
+from werkzeug import secure_filename
 
 from fileshare.libs.configurationMgr import ConfigurationMgr
 from fileshare.api.libs import paths
@@ -17,6 +17,7 @@ Known Status returned by json
 3 - Invalid Password/Login
 4 - Access Token is invalid
 5 - Login Token is invalid
+6 - Login Token or Access Token is invalid
 """
 
 @api.route("/access-password", methods=["POST"])
@@ -49,30 +50,63 @@ def login():
 # /api/files?path=<path_of_file>
 @api.route('files', methods=["POST"])
 def list_dir():
-    path = request.args.get('path')  # Get the argument <url>?path=
-    if not path:
-        return make_json_resp_with_status({"status": 2, "details": "Required url paramater 'path' is not provided"}, 400)
-
     if configuration.config.get("ACCESS_PASSWORD"):
         if not is_access_token_valid(request.cookies):
             return make_json_resp_with_status({"status": 4, "details": "Access Token is invalid/expired"}, 401)
+
+    try:
+        path = request.args.get('path')  # Get the argument <url>?path=
+    except:
+        path = None
+
+    if not path:
+        return make_json_resp_with_status({"status": 2, "details": "Required url paramater 'path' is not provided"}, 400)
 
     dir_data = paths.list_files_from_url(path, configuration.config.get("SHARED_DIR"))
     return make_json_resp_with_status(dir_data, 200)
 
 
-# send PUT Request to files with argument path to specifiy the path
-# and argument filename to specifiy the filename
+# send PUT Request to files with argument path to specify the path
+# and argument filename to specify the filename
 # for example PUT /api/files?path=/example-path/&filename=test
 # will upload a file to /example-path/ with the filename of test
 @api.route('files', methods=["PUT"])
 def upload():
-    if is_requirements_met("UPLOAD", request.cookie):
-        pass
+    # Some work around had to be used do to this bug: https://github.com/pallets/werkzeug/issues/875
+    if not is_requirements_met("UPLOAD", request.cookies):
+        return make_json_resp_with_status({"status": 6, "details": "Login Token or Access Token is invalid"}, 401)
+    
+    try:
+        path = request.args.get("path")
+    except:
+        path = None
 
+    if not path: return make_json_resp_with_status({"status": 2, "details": "Required url paramater 'path' is not provided"}, 400)
+
+    dir_abs_path = paths.make_abs_path_from_url(path, configuration.config.get("SHARED_DIR"))
+
+    files = request.files.getlist("File")
+
+    for file in files:
+        if configuration.config.get("SECURE_UPLOAD_FILENAME"):
+            file_name = secure_filename(file.filename)
+        else:
+            file_name = file.filename
+        dst_path = paths.make_abs_path_from_url(file_name, dir_abs_path, fix_nt_path=True)
+        file.save(dst_path.decode())
+    
+    return make_json_resp_with_status({"status": 0, "details": "Files uploaded successfully"}, 200)
 
 
 @api.route('files', methods=["POST"])
 def delete():
     if is_requirements_met("DELETE", request.cookie):
         pass
+
+
+@api.route('folders', methods=["PUT"])
+def new_folder():
+    if not is_requirements_met("MKDIR", request.cookies):
+        return make_json_resp_with_status({"status": 6, "details": "Login Token or  Access Token is invalid"}, 401)
+
+    
