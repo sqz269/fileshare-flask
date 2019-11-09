@@ -8,7 +8,6 @@ function setURLCurrentDirectory(cPath)
     history.pushState({path: cPath}, "", `?path=${cPath}`);
 }
 
-
 /**
  * Processes response from a change directory response and sets the files/dir to display
  * which the reposes looks like
@@ -87,6 +86,65 @@ function changeDirectoryParent()
     {
         changeDirectory("/");
     }
+}
+
+
+function uploadFile()
+{
+    let formData = new FormData();
+    let $fileInputElement = $("#file-upload")[0];
+
+    for (let i = 0; i < $fileInputElement.files.length; i++)
+    {
+        formData.append("File", $fileInputElement.files[i], $fileInputElement.files[i].name);        
+    }
+
+    let dst = getUrlVars()["path"];
+
+    $.ajax({
+        xhr: function()
+        {
+            let xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener("progress", function(e)
+            {
+                if (e.lengthComputable)
+                {
+                    let perc = Math.round(e.loaded / e.total) * 100;
+                    console.log(`CURRENT PERC: ${perc}`);
+                }
+            });
+
+            return xhr;
+        },
+
+        type: "PUT",
+        url: `/api/files?path=${dst}`,
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function()
+        {
+            console.log("SUCCESS");
+        },
+
+        statusCode: 
+        {
+            401: function (xhr)
+            {
+                console.log("UNAUTHORIZED");
+            },
+            
+            500: function (xhr)
+            {
+                console.log("INTERNAL SERVER ERROR");
+            },
+
+            0: function (xhr)
+            {
+                console.log("REQUEST ABORTED. UNKNOWN");
+            }
+        }
+    });
 }
 
 

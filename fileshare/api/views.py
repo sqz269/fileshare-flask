@@ -83,7 +83,7 @@ def upload():
 
     if not path: return make_json_resp_with_status({"status": 2, "details": "Required url paramater 'path' is not provided"}, 400)
 
-    dir_abs_path = paths.make_abs_path_from_url(path, configuration.config.get("SHARED_DIR"))
+    dir_abs_path = paths.make_abs_path_from_url(path, configuration.config.get("SHARED_DIR"), False)
 
     files = request.files.getlist("File")
 
@@ -92,7 +92,7 @@ def upload():
             file_name = secure_filename(file.filename)
         else:
             file_name = file.filename
-        dst_path = paths.make_abs_path_from_url(file_name, dir_abs_path, fix_nt_path=True)
+        dst_path = paths.make_abs_path_from_url(file_name, dir_abs_path.decode(), fix_nt_path=True)
         file.save(dst_path.decode())
     
     return make_json_resp_with_status({"status": 0, "details": "Files uploaded successfully"}, 200)

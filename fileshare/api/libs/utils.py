@@ -43,7 +43,7 @@ def is_requirements_met(operation, cookies):
     # Convert the string to boolean to keep consistency at required_privilege
 
     required_privilege = [is_access_password_enabled,
-                        configuration.config.get(ops_to_privilege_name["operation"])] # [AccessPrivilege, LoginPrivilege]
+                        configuration.config.get(ops_to_privilege_name[operation])] # [AccessPrivilege, LoginPrivilege]
 
     for (required_priv, current_priv) in zip(required_privilege, current_privilege):
         if not ((required_priv == current_priv) or (current_priv)):
