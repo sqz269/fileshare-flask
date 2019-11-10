@@ -112,19 +112,32 @@ function newFolder()
     sendRequest(`/api/folders?path=${newFolderPath}`, null, newFolderCallback, null, "PUT");
 }
 
+var lastNewDirPath = undefined;  // To lazy to actually think a better what to pass in lastNewDirPath into newFolderEnterDir
+
 function newFolderCallback(status, resp)
 {
     if (status === 200)
     {
-        notifyUserSuccessClickAction("Success", "Directory has been created. Click to refresh files list", refresh);
-        
-        // refresh();
+        resp = JSON.parse(resp)
+        let filePath = resp["path"];
+        lastNewDirPath = filePath;
+
+        let filePathSplitted = filePath.split("/")
+        let fileName = filePathSplitted[filePathSplitted.length - 1]
+
+        fileContainerAddItem(fileName, filePath, "N/A", resp["lastmod"], true);
+        notifyUserSuccessClickAction("Success", "Directory has been created. Click move to the directory", newFolderEnterDir);
     }
     else
     {
         resp = JSON.parse(resp);
         notifyUserError("Error", `New Folder failed with code ${resp["status"]}. | Details: ${resp["details"]}`)
     }
+}
+
+function newFolderEnterDir()
+{
+    changeDirectory(lastNewDirPath);
 }
 
 

@@ -13,7 +13,7 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
 {
     let $templateElement = $("#file-template").clone(false);
     $templateElement.removeAttr("id");
-    $templateElement.find("#file-selection").attr("value", fname).removeAttr("id");
+    $templateElement.find("#file-selection").attr("value", fpath).removeAttr("id");
 
     let $img;
     if (isDir)
