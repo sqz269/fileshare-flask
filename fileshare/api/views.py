@@ -124,3 +124,23 @@ def delete():
 def new_folder():
     if not is_requirements_met("MKDIR", request.cookies):
         return make_json_resp_with_status({"status": 6, "details": "Login Token or  Access Token is invalid"}, 401)
+
+    try:
+        path = request.args.get("path")
+    except:
+        path = None
+
+    if not path: return make_json_resp_with_status({"status": 2, "details": "Required url paramater 'path' is not provided"}, 400)
+
+    try:
+        dir_abs_path = paths.make_abs_path_from_url(path, configuration.config.get("SHARED_DIR"), False)
+    except AssertionError:
+        return make_json_resp_with_status({"status": 102, "details": "Invalid/Illegal Path has been provided"}, 400)
+
+    try:
+        os.mkdir(dir_abs_path)
+        return make_json_resp_with_status({"status": 0, "details": "Successfully created directory", "path": path}, 200)
+    except FileExistsError:
+        return make_json_resp_with_status({"status": 100, "details": "Resource with the same name already exist. Directory Path: {}".format(path)}, 409)
+    except PermissionError:
+        return make_json_resp_with_status({"status": 100, "details": "Access to resource has been denied by the Operating System. Directory path: {}".format(path)}, 403)

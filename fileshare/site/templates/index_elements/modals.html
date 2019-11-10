@@ -35,14 +35,11 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form>
-                    <div class="form-group">
-                        <label for="new-folder-name">Folder Name: </label>
-                        <input type="text" class="form-control" id="new-folder-name" placeholder="Enter Folder Name: ">
-                    </div>
-                    <hr class="my-1"/>
-                    <button type="submit" class="btn btn-primary btn-block">Create Folder</button>
-                </form>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="new-folder-name" placeholder="Enter Folder Name: ">
+                </div>
+                <hr class="my-1"/>
+                <button type="button" class="btn btn-primary btn-block" onclick="javascript:newFolder();">Create Folder</button>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

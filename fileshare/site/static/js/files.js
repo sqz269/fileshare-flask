@@ -58,7 +58,7 @@ function processFileResponse(status, resp)
     else
     {
         resp = JSON.parse(resp);
-        notifyUserError("Error", `Change directory failed with error code ${resp["status"]}. | Details: ${resp["details"]}`)
+        notifyUserError("Error", `Change directory failed with code ${resp["status"]}. | Details: ${resp["details"]}`)
     }
 }
 
@@ -97,14 +97,25 @@ function changeDirectoryParent()
 function newFolder()
 {
     let newFolderName =  $("#new-folder-name").val();
-    let newFolderPath = getUrlVars()["path"] + "/" + newFolderName;
-    console.log(`New folder url path: ${newFolderPath}`);
+    let currentPath = getUrlVars()["path"];
+    let newFolderPath =  currentPath + "/" + newFolderName;
+    // console.log(`New folder url path: ${newFolderPath}`);
     sendRequest(`/api/folders?path=${newFolderPath}`, null, newFolderCallback, null, "PUT");
 }
 
 function newFolderCallback(status, resp)
 {
-    console.log(`STATUS: ${status} | RESP: ${resp}`)
+    if (status === 200)
+    {
+        notifyUserSuccessClickAction("Success", "Directory has been created. Click to refresh files list", refresh);
+        
+        // refresh();
+    }
+    else
+    {
+        resp = JSON.parse(resp);
+        notifyUserError("Error", `New Folder failed with code ${resp["status"]}. | Details: ${resp["details"]}`)
+    }
 }
 
 
@@ -169,5 +180,5 @@ function uploadFile()
 
 function refresh()
 {
-
+    changeDirectory(getUrlVars()["path"]);
 }
