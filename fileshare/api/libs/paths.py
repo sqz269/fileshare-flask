@@ -95,7 +95,10 @@ def make_abs_path_from_url(uri, file_directory, fix_nt_path=True) -> bytes:
         (bytes) the abs path made from the uri that points to the file/dir the user requested (bytes if fix_nt_path is true else string)
 
     :Raise:
-        AssertionError : If the path made is invalid
+        AssertionError : If the the inputted path deemed to be dangerous (Possibly Contain Directory Traversal)
+
+        FileNotFoundError: If the abs path made is invalid
+
     """
     uri = unquote(uri)
 

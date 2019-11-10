@@ -86,6 +86,10 @@ def jwt_issue(valid_length: int, key: str):
     return jwt.encode({"CREATED": time.time(), "VALIDFOR": int(valid_length)}, key)
 
 
+def make_status_resp(status, details, http_resp):
+    return make_json_resp_with_status({"status": status, "details": details}, http_resp)
+
+
 def make_json_resp_with_status(data: dict, status: int) -> Response:
     """
     Creates a response object with at status code and json

@@ -3,7 +3,9 @@ from werkzeug import secure_filename
 
 from fileshare.libs.configurationMgr import ConfigurationMgr
 from fileshare.api.libs import paths
-from fileshare.api.libs.utils import make_json_resp_with_status,jwt_issue, is_access_token_valid, is_requirements_met
+from fileshare.api.libs.utils import *
+
+from fileshare.api.libs.status_to_msg import STATUS_TO_MESSAGE, STATUS_TO_HTTP_CODE
 
 import os
 
@@ -21,7 +23,7 @@ User Errors
 3 - Invalid Password/Login
 4 - Access Token is invalid
 5 - Login Token is invalid
-6 - Login Token or Access Token is invalid
+6 - Login or Access Token is invalid
 
 Resource Related Errors
 100 - Resource with the same name already exist
@@ -38,17 +40,18 @@ def process_access_password():
         try:
             password = request.get_json()
         except (KeyError, TypeError):
-            return make_json_resp_with_status({"status": 2, "details": "No password is provided"}, 401)
+            return make_status_resp(2, STATUS_TO_MESSAGE[2], STATUS_TO_HTTP_CODE[2]) 
 
         if password["password"] == configuration.config.get("ACCESS_PASSWORD"):
-            resp = make_json_resp_with_status({"status": 0, "details": "Authorized"}, 200)
+            resp = make_status_resp(0, "Authorized", STATUS_TO_HTTP_CODE[0])
             resp.set_cookie("AccessToken", jwt_issue(configuration.config.get("JWT_VALID_FOR"),
                                                      configuration.config.get("JWT_SECRET_KEY")), max_age=int(configuration.config.get("JWT_VALID_FOR")))
             return resp
+        
         else:
-            return make_json_resp_with_status({"status": 3, "details": "Invalid password"}, 401)
+            return make_status_resp(3, STATUS_TO_MESSAGE[3], STATUS_TO_HTTP_CODE[3])
     else:
-        return make_json_resp_with_status({"status": 1, "details": "Access password is disabled"}, 400)
+        return make_status_resp(1, "Access Password is not in use", STATUS_TO_HTTP_CODE[1])
 
 
 @api.route("/login")
@@ -62,7 +65,7 @@ def login():
 def list_dir():
     if configuration.config.get("ACCESS_PASSWORD"):
         if not is_access_token_valid(request.cookies):
-            return make_json_resp_with_status({"status": 4, "details": "Access Token is invalid/expired"}, 401)
+            return make_status_resp(4, STATUS_TO_MESSAGE[4], STATUS_TO_HTTP_CODE[4])
 
     try:
         path = request.args.get('path')  # Get the argument <url>?path=
@@ -70,14 +73,14 @@ def list_dir():
         path = None
 
     if not path:
-        return make_json_resp_with_status({"status": 2, "details": "Required url paramater 'path' is not provided"}, 400)
+        return make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
 
     try:
         dir_data = paths.list_files_from_url(path, configuration.config.get("SHARED_DIR"))
     except AssertionError:
-        return make_json_resp_with_status({"status": 102, "details": "Illegal Path provided"}, 400)
+        return make_status_resp(102, STATUS_TO_MESSAGE[102], STATUS_TO_HTTP_CODE[102])
     except FileNotFoundError:
-        return make_json_resp_with_status({"status": 103, "details": "Path: {} does not exist".format(path)}, 404)
+        return make_status_resp(103, "target path: {} does not exist".format(path), STATUS_TO_HTTP_CODE[103])
 
     return make_json_resp_with_status(dir_data, 200)
 
@@ -90,14 +93,15 @@ def list_dir():
 def upload():
     # Some work around had to be used do to this bug: https://github.com/pallets/werkzeug/issues/875
     if not is_requirements_met("UPLOAD", request.cookies):
-        return make_json_resp_with_status({"status": 6, "details": "Login Token or Access Token is invalid"}, 401)
+        return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
     
     try:
         path = request.args.get("path")
     except:
         path = None
 
-    if not path: return make_json_resp_with_status({"status": 2, "details": "Required url paramater 'path' is not provided"}, 400)
+    if not path: 
+        return make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
 
     dir_abs_path = paths.make_abs_path_from_url(path, configuration.config.get("SHARED_DIR"), False)
 
@@ -111,36 +115,39 @@ def upload():
         dst_path = paths.make_abs_path_from_url(file_name, dir_abs_path.decode(), fix_nt_path=True)
         file.save(dst_path.decode())
     
-    return make_json_resp_with_status({"status": 0, "details": "Files uploaded successfully"}, 200)
+    return make_status_resp(0, "File uploaded successfully", STATUS_TO_HTTP_CODE[0])
 
 
-@api.route('files', methods=["POST"])
+@api.route('files', methods=["DELETE"])
 def delete():
-    if is_requirements_met("DELETE", request.cookie):
-        pass
+    if not is_requirements_met("DELETE", request.cookies):
+        return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
+
+    abs_path = paths.make_abs_path_from_url()
 
 
 @api.route('folders', methods=["PUT"])
 def new_folder():
     if not is_requirements_met("MKDIR", request.cookies):
-        return make_json_resp_with_status({"status": 6, "details": "Login Token or  Access Token is invalid"}, 401)
+        return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
 
     try:
         path = request.args.get("path")
     except:
         path = None
 
-    if not path: return make_json_resp_with_status({"status": 2, "details": "Required url paramater 'path' is not provided"}, 400)
+    if not path: 
+        return make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
 
     try:
         dir_abs_path = paths.make_abs_path_from_url(path, configuration.config.get("SHARED_DIR"), False)
     except AssertionError:
-        return make_json_resp_with_status({"status": 102, "details": "Invalid/Illegal Path has been provided"}, 400)
+        return make_status_resp(102, STATUS_TO_MESSAGE[102], STATUS_TO_HTTP_CODE[102])
 
     try:
         os.mkdir(dir_abs_path)
-        return make_json_resp_with_status({"status": 0, "details": "Successfully created directory", "path": path}, 200)
+        return make_json_resp_with_status({"status": 0, "details": "Successfully created directory", "path": path, "lastmod": os.path.getmtime(dir_abs_path)}, 200)
     except FileExistsError:
-        return make_json_resp_with_status({"status": 100, "details": "Resource with the same name already exist. Directory Path: {}".format(path)}, 409)
+        return make_status_resp(100, STATUS_TO_MESSAGE[100], STATUS_TO_HTTP_CODE[100])
     except PermissionError:
-        return make_json_resp_with_status({"status": 100, "details": "Access to resource has been denied by the Operating System. Directory path: {}".format(path)}, 403)
+        return make_status_resp(101, STATUS_TO_MESSAGE[101], STATUS_TO_HTTP_CODE[101])
