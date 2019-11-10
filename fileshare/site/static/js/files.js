@@ -98,7 +98,16 @@ function newFolder()
 {
     let newFolderName =  $("#new-folder-name").val();
     let currentPath = getUrlVars()["path"];
-    let newFolderPath =  currentPath + "/" + newFolderName;
+    let newFolderPath = undefined;
+    if (currentPath.charAt(currentPath.length - 1) == "/")
+    {
+        newFolderPath = `${currentPath}${newFolderName}`;
+    }
+    else
+    {
+        newFolderPath = `${currentPath}/${newFolderName}`;
+    }
+
     // console.log(`New folder url path: ${newFolderPath}`);
     sendRequest(`/api/folders?path=${newFolderPath}`, null, newFolderCallback, null, "PUT");
 }
