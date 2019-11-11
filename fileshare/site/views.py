@@ -12,7 +12,7 @@ configuration = ConfigurationMgr()
 
 mime = magic.Magic(mime=True)
 
-@site.route('/')
+@site.route('/', methods=["GET"])
 def homepage():
     if configuration.config.get("ACCESS_PASSWORD"):
         if is_access_token_valid(request.cookies):
@@ -23,9 +23,16 @@ def homepage():
         return render_template("index.html")
 
 
-@site.route('/<path:path>')
+@site.route('/<path:path>', methods=["GET"])
 def files(path):
     try:
+
+        is_mode_download = False
+        try:
+            is_mode_download = request.args.get("mode") == "download"
+        except:
+            pass
+
         if configuration.config.get("DETECT_FILE_MIME"):
             # If the user want us to automatically determin the mime type of the file
             # we can serve stuff like img/vid directly instead of having to download
@@ -38,15 +45,23 @@ def files(path):
             with open(abs_path, "rb") as file:
                 f_mime = mime.from_buffer(file.read(1024))
 
-            print("Detected mime type for file: {} | type: {}".format(path, f_mime))
+            print("Detected mime type for file: {} | type: {}".format(path, f_mime)) # TODO DO NOT detect mime type if it is streaming
+
         if configuration.config.get("FILE_MIME"):
             f_mime = configuration.config.get("FILE_MIME")
 
         if configuration.config.get("ACCESS_PASSWORD"):
             if is_access_token_valid(request.cookies):
-                return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime)
+                if is_mode_download:
+                    return send_from_directory(configuration.config.get("SHARED_DIR"), path, as_attachment=True)
+                else:
+                    return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime)
             else:
                 return render_template("password.html")
-        return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime)
+
+        if is_mode_download:
+            return send_from_directory(configuration.config.get("SHARED_DIR"), path, as_attachment=True)
+        else:
+            return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime)
     except (PermissionError, FileNotFoundError):
         return render_template("error/404.html")
