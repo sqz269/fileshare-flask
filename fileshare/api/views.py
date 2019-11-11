@@ -16,7 +16,7 @@ api = Blueprint("api", __name__, url_prefix="/api")
 """
 Known Status returned by json
 0 - Operation was successful
-
+-
 User Errors
 1 - Feature is not in use
 2 - Required data/fields are not provided
@@ -36,7 +36,6 @@ Resource Related Errors
 def process_access_password():
     # Password json looks like { "password": password }
     if configuration.config.get("ACCESS_PASSWORD"):  # If access_password is enabled
-
         try:
             password = request.get_json()
         except (KeyError, TypeError):
@@ -44,14 +43,41 @@ def process_access_password():
 
         if password["password"] == configuration.config.get("ACCESS_PASSWORD"):
             resp = make_status_resp(0, "Authorized", STATUS_TO_HTTP_CODE[0])
-            resp.set_cookie("AccessToken", jwt_issue(configuration.config.get("JWT_VALID_FOR"),
-                                                     configuration.config.get("JWT_SECRET_KEY")), max_age=int(configuration.config.get("JWT_VALID_FOR")))
+            resp.set_cookie("AccessToken", 
+                            jwt_issue_access_token("/"),
+                            max_age=int(configuration.config.get("JWT_VALID_FOR")))
             return resp
         
         else:
             return make_status_resp(3, STATUS_TO_MESSAGE[3], STATUS_TO_HTTP_CODE[3])
     else:
         return make_status_resp(1, "Access Password is not in use", STATUS_TO_HTTP_CODE[1])
+
+
+# use like /api/access-token?path=<URLPath>
+# URLPath is the path that the access token will be valid for
+# for example if the URLPath is /myPresentation/group
+# Any files in /myPresentation/group will be accessible with the token
+# But files in /myDocs/own will not be accessible with the token
+@api.route("/access-token", methods=["POST"])
+def issue_access_password():
+    path = get_url_param(request.args, "path")
+
+    if not path:
+        return make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
+
+    if is_requirements_met_token_issue(request.cookies):
+        return jwt_issue_access_token(path)
+
+    # Might change to a clear message for case of user issued access token is disabled
+    return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
+
+
+@api.route("/access-token", methods=["OPTION"])
+def get_access_token_settings():
+    return make_json_resp_with_status({"token_in_url_param": configuration.config.get("TOKEN_IN_URL_PARAM"),
+                                       "user_issued_token": configuration.config.get("USER_ISSUED_TOKEN"),
+                                       "user_issue_token_require_auth": configuration.config.get("USER_ISSUE_TOKEN_AUTH_REQUIRED")}, 200)
 
 
 @api.route("/login")
@@ -63,14 +89,10 @@ def login():
 # /api/files?path=<path_of_file>
 @api.route('files', methods=["POST"])
 def list_dir():
-    if configuration.config.get("ACCESS_PASSWORD"):
-        if not is_access_token_valid(request.cookies):
-            return make_status_resp(4, STATUS_TO_MESSAGE[4], STATUS_TO_HTTP_CODE[4])
+    if not is_access_token_valid(request.cookies):
+        return make_status_resp(4, STATUS_TO_MESSAGE[4], STATUS_TO_HTTP_CODE[4])
 
-    try:
-        path = request.args.get('path')  # Get the argument <url>?path=
-    except:
-        path = None
+    path = get_url_param(request.args, "path")
 
     if not path:
         return make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
@@ -92,13 +114,11 @@ def list_dir():
 @api.route('files', methods=["PUT"])
 def upload():
     # Some work around had to be used do to this bug: https://github.com/pallets/werkzeug/issues/875
-    if not is_requirements_met("UPLOAD", request.cookies):
+    if not is_requirements_met_file("UPLOAD", request.cookies):
         return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
     
-    try:
-        path = request.args.get("path")
-    except:
-        path = None
+
+    path = get_url_param(request.args, "path")
 
     if not path: 
         return make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
@@ -120,7 +140,7 @@ def upload():
 
 @api.route('files', methods=["DELETE"])
 def delete():
-    if not is_requirements_met("DELETE", request.cookies):
+    if not is_requirements_met_file("DELETE", request.cookies):
         return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
 
     abs_path = paths.make_abs_path_from_url()
@@ -128,13 +148,10 @@ def delete():
 
 @api.route('folders', methods=["PUT"])
 def new_folder():
-    if not is_requirements_met("MKDIR", request.cookies):
+    if not is_requirements_met_file("MKDIR", request.cookies):
         return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
 
-    try:
-        path = request.args.get("path")
-    except:
-        path = None
+
 
     if not path: 
         return make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])

@@ -20,6 +20,10 @@ class ConfigurationMgr(object, metaclass=Singleton):
 
             "ACCESS_PASSWORD": None,
 
+            "TOKEN_IN_URL_PARAM": None,
+            "USER_ISSUED_TOKEN": None,
+            "USER_ISSUE_TOKEN_AUTH_REQUIRED": None,
+
             "UPLOAD_AUTH_REQUIRED": None,
             "DELETE_AUTH_REQUIRED": None,
             "MKDIR_AUTH_REQUIRED": None,
@@ -68,6 +72,10 @@ class ConfigurationMgr(object, metaclass=Singleton):
 
         self.config["JWT_SECRET_KEY"] = cfg_jwt["JWT_key"]
         self.config["JWT_VALID_FOR"] = cfg_jwt["JWT_valid_for"]
+
+        self.config["TOKEN_IN_URL_PARAM"] = cfg_permission.getboolean("allow_access_token_as_url_param")
+        self.config["USER_ISSUED_TOKEN"] = cfg_permission.getboolean("allow_user_issue_token")
+        self.config["USER_ISSUE_TOKEN_AUTH_REQUIRED"] = cfg_permission.getboolean("share_file_auth_required")
 
         self.config["UPLOAD_AUTH_REQUIRED"] = cfg_permission.getboolean("upload_auth_required")
         self.config["DELETE_AUTH_REQUIRED"] = cfg_permission.getboolean("delete_auth_required")

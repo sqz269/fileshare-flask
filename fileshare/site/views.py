@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, send_from_directory
 from fileshare.libs.configurationMgr import ConfigurationMgr
-from fileshare.api.libs.utils import is_access_token_valid
+from fileshare.api.libs.utils import is_access_token_valid, get_url_param
 from fileshare.api.libs.paths import make_abs_path_from_url
 
 import magic
@@ -14,24 +14,20 @@ mime = magic.Magic(mime=True)
 
 @site.route('/', methods=["GET"])
 def homepage():
-    if configuration.config.get("ACCESS_PASSWORD"):
-        if is_access_token_valid(request.cookies):
-            return render_template("index.html")
-        else:
-            return render_template("password.html")
-    else:
+    if is_access_token_valid(request.cookies):
         return render_template("index.html")
+    else:
+        return render_template("password.html")
 
 
+# Request a file to serve, url paramater "mode" is avaliable
+# only value mode can be is "download" which force to send the file as an attachment
+# which the browser will proceed to download that file
 @site.route('/<path:path>', methods=["GET"])
 def files(path):
     try:
 
-        is_mode_download = False
-        try:
-            is_mode_download = request.args.get("mode") == "download"
-        except:
-            pass
+        is_mode_download = get_url_param(request.args, "mode") == "download"
 
         if configuration.config.get("DETECT_FILE_MIME"):
             # If the user want us to automatically determin the mime type of the file
@@ -50,14 +46,13 @@ def files(path):
         if configuration.config.get("FILE_MIME"):
             f_mime = configuration.config.get("FILE_MIME")
 
-        if configuration.config.get("ACCESS_PASSWORD"):
-            if is_access_token_valid(request.cookies):
-                if is_mode_download:
-                    return send_from_directory(configuration.config.get("SHARED_DIR"), path, as_attachment=True)
-                else:
-                    return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime)
+        if is_access_token_valid(request.cookies):
+            if is_mode_download:
+                return send_from_directory(configuration.config.get("SHARED_DIR"), path, as_attachment=True)
             else:
-                return render_template("password.html")
+                return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime)
+        else:
+            return render_template("password.html")
 
         if is_mode_download:
             return send_from_directory(configuration.config.get("SHARED_DIR"), path, as_attachment=True)

@@ -1,3 +1,4 @@
+import os
 import jwt
 import time
 import json
@@ -6,9 +7,29 @@ from fileshare.libs.configurationMgr import ConfigurationMgr
 
 configuration = ConfigurationMgr()
 
+
+def get_url_param(url_params, target_param):
+    """
+    Get a url paramater's value, unlike requests.args.get
+    this function will return None if the paramater doesn't exist instead rasing a exception
+
+    :Args:
+        url_params (request.args) dictionary of paramaters
+        target_param (str) the paramater to retreive
+
+    :Return:
+        (str) if the paramater exists else returns None
+    """
+    try:
+        return url_params[target_param]
+    except:
+        return None
+
+
 def is_access_token_valid(cookies) -> bool:
     """
     Check if an access token (required by configuration "ACCESS_PASSWORD") is a valid token
+    If the configuration ACCESS_PASSWORD is disabled then it will always return True
 
     :Args:
         cookies (request.cookies -> dict) dictionary of cookies
@@ -16,10 +37,12 @@ def is_access_token_valid(cookies) -> bool:
     :Return:
         (bool) True if the access token is valid, false if it is not
     """
-    if 'AccessToken' in cookies:
-        return jwt_validate(cookies['AccessToken'],
-                            configuration.config.get('JWT_SECRET_KEY'))
-    return False
+    if configuration.config.get("ACCESS_PASSWORD"):
+        if 'AccessToken' in cookies:
+            return jwt_validate(cookies['AccessToken'],
+                                configuration.config.get('JWT_SECRET_KEY'))
+        return False
+    return True
 
 
 def is_login_token_valid(cookies) -> bool:
@@ -29,7 +52,18 @@ def is_login_token_valid(cookies) -> bool:
     return False
 
 
-def is_requirements_met(operation, cookies):
+def is_requirements_met_file(operation, cookies):
+    """
+    Check if all privilege requirements are satisfied to change the file
+
+    :Args:
+        operation (string) - the the way the file will be changed; avaliable fields: (UPLOAD, DELETE, RENAME, MKDIR)
+    
+        cookies (request.cookies) - the cookies the user send with the request, used to verify login/access token
+
+    :Return:
+        (bool) true if the user have all the privilege to change the file, else False
+    """
     ops_to_privilege_name = {
         "UPLOAD": "UPLOAD_AUTH_REQUIRED",
         "DELETE": "DELETE_AUTH_REQUIRED",
@@ -53,6 +87,45 @@ def is_requirements_met(operation, cookies):
     return True
 
 
+def is_requirements_met_token_issue(cookies):
+    """
+    Check if all privilege requirements are satisfied to issue a temporary access token
+
+    :Args:
+        operation (string) - the the way the file will be changed; avaliable fields: (UPLOAD, DELETE, RENAME, MKDIR)
+    
+        cookies (request.cookies) - the cookies the user send with the request, used to verify login/access token
+
+    :Return:
+        (bool) true if the user have all the privilege to issue a temporary access token
+    """
+    allow_user_issue_token = configuration.config.get("USER_ISSUED_TOKEN")
+    user_issue_toke_auth_required = configuration.config.get("USER_ISSUE_TOKEN_AUTH_REQUIRED")
+
+    if not allow_user_issue_token: return False
+
+    if user_issue_toke_auth_required:
+        if not is_login_token_valid(cookies):
+            return False
+
+    return True
+
+
+def jwt_validate_access_token(src_jwt: str, key: str, current_path: str):
+    try:
+        jwt_decoded = jwt.decode(src_jwt, key)
+        is_path_valid = os.path.commonprefix(current_path, jwt_decoded["PATH"]) == current_path
+        return (time.time < (int(jwt_decoded["VALIDFOR"]) + int(jwt_decoded["CREATED"]))) and (is_path_valid)
+    except:
+        return False
+
+
+def jwt_issue_access_token(allow_path):
+    jwt_issue(configuration.config.get("JWT_VALID_FOR"),
+              configuration.config.get("JWT_SECRET_KEY"),
+              extra_fields={"PATH": allow_path})
+
+
 # issued jwt looks like {"CREATED": <UNIX TIMESTAMP>, "VALIDFOR": <Seconds>}
 def jwt_validate(src_jwt: str, key: str) -> bool:
     """
@@ -72,7 +145,7 @@ def jwt_validate(src_jwt: str, key: str) -> bool:
         return False
 
 
-def jwt_issue(valid_length: int, key: str):
+def jwt_issue(valid_length: int, key: str, extra_fields={}):
     """
     Generate a JWT contains the time the jwt is valid for, and the time it's generated
 
@@ -83,7 +156,9 @@ def jwt_issue(valid_length: int, key: str):
     :Return:
         (Bytes) encoded jwt (returned by function jwt.encode)
     """
-    return jwt.encode({"CREATED": time.time(), "VALIDFOR": int(valid_length)}, key)
+    payload = {"CREATED": time.time(), "VALIDFOR": int(valid_length)}
+    payload.update(extra_fields)
+    return jwt.encode(payload, key)
 
 
 def make_status_resp(status, details, http_resp):
