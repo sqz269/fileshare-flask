@@ -161,8 +161,9 @@ function uploadFile()
             {
                 if (e.lengthComputable)
                 {
-                    let perc = Math.round(e.loaded / e.total) * 100;
-                    console.log(`CURRENT PERC: ${perc}`);
+                    let percent = (e.loaded / e.total * 100).toFixed(2);
+                    $("#upload-progress").attr("aria-valuenow", percent).css("width", percent + "%").text(percent + "%");
+                    console.log("Percent Loaded: " + percent)
                 }
             });
 
@@ -176,7 +177,7 @@ function uploadFile()
         contentType: false,
         success: function()
         {
-            console.log("SUCCESS");
+            notifyUserSuccess("Success", "File uploaded successfully")
         },
 
         statusCode: 

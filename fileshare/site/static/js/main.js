@@ -9,3 +9,7 @@ $(document).ready ( function(){
         changeDirectory("/");
     }
 });
+
+$("#checkAll").click(function(){
+    $("input[type=checkbox]").prop('checked', $(this).prop('checked'));
+});
