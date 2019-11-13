@@ -108,7 +108,7 @@ def is_requirements_met_file(operation, cookies, path):
     return True
 
 
-def is_requirements_met_token_issue(cookies):
+def is_requirements_met_token_issue(cookies, path):
     """
     Check if all privilege requirements are satisfied to issue a temporary access token
 
@@ -126,7 +126,11 @@ def is_requirements_met_token_issue(cookies):
     if not allow_user_issue_token: return False
 
     if user_issue_toke_auth_required:
-        if not is_login_token_valid(cookies):
+        if not is_login_token_valid(cookies) and not is_access_token_valid(cookies, path):
+            return False
+
+    else:
+        if not is_access_token_valid(cookies, path):
             return False
 
     return True
@@ -143,8 +147,8 @@ def jwt_validate_access_token(src_jwt: str, key: str, current_path: str):
 
 def jwt_issue_access_token(allow_path):
     return jwt_issue(configuration.config.get("JWT_VALID_FOR"),
-              configuration.config.get("JWT_SECRET_KEY"),
-              extra_fields={"PATH": allow_path})
+                    configuration.config.get("JWT_SECRET_KEY"),
+                    extra_fields={"PATH": allow_path})
 
 
 # issued jwt looks like {"CREATED": <UNIX TIMESTAMP>, "VALIDFOR": <Seconds>}

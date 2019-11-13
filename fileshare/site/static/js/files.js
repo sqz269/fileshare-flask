@@ -203,7 +203,7 @@ function uploadFile()
 
 function generateAccessTokenForPath(path)
 {
-    
+    sendRequest(`/api/access-token?path=${path}`, null, null);
 }
 
 function refresh()

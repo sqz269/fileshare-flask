@@ -66,8 +66,10 @@ def issue_access_password():
     if not path:
         return make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
 
-    if is_requirements_met_token_issue(request.cookies):
-        return jwt_issue_access_token(path)
+    if is_requirements_met_token_issue(request.cookies, path):
+        return make_json_resp_with_status({"status": 0, 
+                                           "details": "success", 
+                                           "token": jwt_issue_access_token(path).decode()}, 200)
     else:
         # Might change to a clear message for case of user issued access token is disabled
         return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
