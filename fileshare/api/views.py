@@ -68,9 +68,9 @@ def issue_access_password():
 
     if is_requirements_met_token_issue(request.cookies):
         return jwt_issue_access_token(path)
-
-    # Might change to a clear message for case of user issued access token is disabled
-    return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
+    else:
+        # Might change to a clear message for case of user issued access token is disabled
+        return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
 
 
 @api.route("/access-token", methods=["OPTION"])
@@ -89,10 +89,10 @@ def login():
 # /api/files?path=<path_of_file>
 @api.route('files', methods=["POST"])
 def list_dir():
-    if not is_access_token_valid(request.cookies):
-        return make_status_resp(4, STATUS_TO_MESSAGE[4], STATUS_TO_HTTP_CODE[4])
-
     path = get_url_param(request.args, "path")
+
+    if not is_access_token_valid(request.cookies, path):
+        return make_status_resp(4, STATUS_TO_MESSAGE[4], STATUS_TO_HTTP_CODE[4])
 
     if not path:
         return make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
@@ -113,12 +113,12 @@ def list_dir():
 # will upload a file to /example-path/ with the filename of test
 @api.route('files', methods=["PUT"])
 def upload():
-    # Some work around had to be used do to this bug: https://github.com/pallets/werkzeug/issues/875
-    if not is_requirements_met_file("UPLOAD", request.cookies):
-        return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
-    
-
     path = get_url_param(request.args, "path")
+
+    # Some work around had to be used do to this bug: https://github.com/pallets/werkzeug/issues/875
+    if not is_requirements_met_file("UPLOAD", request.cookies, path):
+        return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
+
 
     if not path: 
         return make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
@@ -140,7 +140,9 @@ def upload():
 
 @api.route('files', methods=["DELETE"])
 def delete():
-    if not is_requirements_met_file("DELETE", request.cookies):
+    path = get_url_param(request.args, "path")
+
+    if not is_requirements_met_file("DELETE", request.cookies, path):
         return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
 
     abs_path = paths.make_abs_path_from_url()
@@ -148,10 +150,10 @@ def delete():
 
 @api.route('folders', methods=["PUT"])
 def new_folder():
-    if not is_requirements_met_file("MKDIR", request.cookies):
+    path = get_url_param(request.args, "path")
+
+    if not is_requirements_met_file("MKDIR", request.cookies, path):
         return make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
-
-
 
     if not path: 
         return make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])

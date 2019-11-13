@@ -201,6 +201,11 @@ function uploadFile()
 }
 
 
+function generateAccessTokenForPath(path)
+{
+    
+}
+
 function refresh()
 {
     changeDirectory(getUrlVars()["path"]);

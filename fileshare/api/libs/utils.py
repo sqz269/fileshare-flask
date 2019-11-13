@@ -26,10 +26,10 @@ def get_url_param(url_params, target_param):
         return None
 
 
-def is_access_token_valid(cookies) -> bool:
+def is_access_token_valid(cookies, path) -> bool:
     """
     Check if an access token (required by configuration "ACCESS_PASSWORD") is a valid token
-    If the configuration ACCESS_PASSWORD is disabled then it will always return True
+    Unlink is_access_token_valid this function also check
 
     :Args:
         cookies (request.cookies -> dict) dictionary of cookies
@@ -39,10 +39,29 @@ def is_access_token_valid(cookies) -> bool:
     """
     if configuration.config.get("ACCESS_PASSWORD"):
         if 'AccessToken' in cookies:
-            return jwt_validate(cookies['AccessToken'],
-                                configuration.config.get('JWT_SECRET_KEY'))
+            return jwt_validate_access_token(cookies["AccessToken"], 
+                                            configuration.config.get("JWT_SECRET_KEY"), 
+                                            path)
         return False
+
     return True
+
+
+def is_access_token_valid_no_path(cookies) -> bool:
+    """
+    Check if an access token (required by configuration "ACCESS_PASSWORD") is a valid token
+    Invokes is_access_token_valid with path paramater set to "/"
+
+    :Args:
+        cookies (request.cookies -> dict) dictionary of cookies
+
+    :Return:
+        (bool) True if the access token is valid, false if it is not
+    """
+    if configuration.config.get("ACCESS_PASSWORD"):
+        if "AccessToken" in cookies:
+            return jwt_validate(cookies["AccessToken"], configuration.config.get("JWT_SECRET_KEY"))
+    return False
 
 
 def is_login_token_valid(cookies) -> bool:
@@ -52,7 +71,7 @@ def is_login_token_valid(cookies) -> bool:
     return False
 
 
-def is_requirements_met_file(operation, cookies):
+def is_requirements_met_file(operation, cookies, path):
     """
     Check if all privilege requirements are satisfied to change the file
 
@@ -60,6 +79,8 @@ def is_requirements_met_file(operation, cookies):
         operation (string) - the the way the file will be changed; avaliable fields: (UPLOAD, DELETE, RENAME, MKDIR)
     
         cookies (request.cookies) - the cookies the user send with the request, used to verify login/access token
+
+        path (str) - the file path the operation is requested to change
 
     :Return:
         (bool) true if the user have all the privilege to change the file, else False
@@ -71,7 +92,7 @@ def is_requirements_met_file(operation, cookies):
         "MKDIR": "MKDIR_AUTH_REQUIRED"
     }
 
-    current_privilege = [is_access_token_valid(cookies), is_login_token_valid(cookies)]
+    current_privilege = [is_access_token_valid(cookies, path), is_login_token_valid(cookies)]
 
     is_access_password_enabled = configuration.config.get("ACCESS_TOKEN") == True
     # Convert the string to boolean to keep consistency at required_privilege
@@ -114,14 +135,14 @@ def is_requirements_met_token_issue(cookies):
 def jwt_validate_access_token(src_jwt: str, key: str, current_path: str):
     try:
         jwt_decoded = jwt.decode(src_jwt, key)
-        is_path_valid = os.path.commonprefix(current_path, jwt_decoded["PATH"]) == current_path
-        return (time.time < (int(jwt_decoded["VALIDFOR"]) + int(jwt_decoded["CREATED"]))) and (is_path_valid)
+        is_path_valid = os.path.commonprefix((current_path, jwt_decoded["PATH"])) == jwt_decoded["PATH"]
+        return (time.time() < (int(jwt_decoded["VALIDFOR"]) + int(jwt_decoded["CREATED"]))) and (is_path_valid)
     except:
         return False
 
 
 def jwt_issue_access_token(allow_path):
-    jwt_issue(configuration.config.get("JWT_VALID_FOR"),
+    return jwt_issue(configuration.config.get("JWT_VALID_FOR"),
               configuration.config.get("JWT_SECRET_KEY"),
               extra_fields={"PATH": allow_path})
 

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, send_from_directory
 from fileshare.libs.configurationMgr import ConfigurationMgr
-from fileshare.api.libs.utils import is_access_token_valid, get_url_param
+from fileshare.api.libs.utils import is_access_token_valid, get_url_param, is_access_token_valid_no_path
 from fileshare.api.libs.paths import make_abs_path_from_url
 
 import magic
@@ -14,7 +14,7 @@ mime = magic.Magic(mime=True)
 
 @site.route('/', methods=["GET"])
 def homepage():
-    if is_access_token_valid(request.cookies):
+    if is_access_token_valid_no_path(request.cookies):
         return render_template("index.html")
     else:
         return render_template("password.html")
@@ -46,7 +46,7 @@ def files(path):
         if configuration.config.get("FILE_MIME"):
             f_mime = configuration.config.get("FILE_MIME")
 
-        if is_access_token_valid(request.cookies):
+        if is_access_token_valid(request.cookies, path):
             if is_mode_download:
                 return send_from_directory(configuration.config.get("SHARED_DIR"), path, as_attachment=True)
             else:
