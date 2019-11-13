@@ -146,9 +146,8 @@ def jwt_validate_access_token(src_jwt: str, key: str, current_path: str):
 
 
 def jwt_issue_access_token(allow_path):
-    return jwt_issue(configuration.config.get("JWT_VALID_FOR"),
-                    configuration.config.get("JWT_SECRET_KEY"),
-                    extra_fields={"PATH": allow_path})
+    return jwt_issue(configuration.config.get("JWT_SECRET_KEY"),
+                     extra_fields={"PATH": allow_path})
 
 
 # issued jwt looks like {"iat": <UNIX TIMESTAMP>}
@@ -170,7 +169,7 @@ def jwt_validate(src_jwt: str, key: str) -> bool:
         return False
 
 
-def jwt_issue(valid_length: int, key: str, extra_fields={}):
+def jwt_issue(key: str, extra_fields={}):
     """
     Generate a JWT contains the time the jwt is valid for, and the time it's generated
 
