@@ -140,7 +140,7 @@ def jwt_validate_access_token(src_jwt: str, key: str, current_path: str):
     try:
         jwt_decoded = jwt.decode(src_jwt, key)
         is_path_valid = os.path.commonprefix((current_path, jwt_decoded["PATH"])) == jwt_decoded["PATH"]
-        return (time.time() < (int(jwt_decoded["VALIDFOR"]) + int(jwt_decoded["CREATED"]))) and (is_path_valid)
+        return (time.time() < (int(configuration.config.get("JWT_VALID_FOR")) + int(jwt_decoded["iat"]))) and (is_path_valid)
     except:
         return False
 
@@ -151,7 +151,7 @@ def jwt_issue_access_token(allow_path):
                     extra_fields={"PATH": allow_path})
 
 
-# issued jwt looks like {"CREATED": <UNIX TIMESTAMP>, "VALIDFOR": <Seconds>}
+# issued jwt looks like {"iat": <UNIX TIMESTAMP>}
 def jwt_validate(src_jwt: str, key: str) -> bool:
     """
     Check if a jwt is valid
@@ -165,7 +165,7 @@ def jwt_validate(src_jwt: str, key: str) -> bool:
     """
     try:
         jwt_decoded = jwt.decode(src_jwt, key)
-        return (time.time() < (int(jwt_decoded["VALIDFOR"]) + int(jwt_decoded["CREATED"])))
+        return (time.time() < (configuration.config.get("JWT_VALID_FOR")) + int(jwt_decoded["iat"]))
     except jwt.InvalidSignatureError:
         return False
 
@@ -181,7 +181,7 @@ def jwt_issue(valid_length: int, key: str, extra_fields={}):
     :Return:
         (Bytes) encoded jwt (returned by function jwt.encode)
     """
-    payload = {"CREATED": time.time(), "VALIDFOR": int(valid_length)}
+    payload = {"iat": time.time()}
     payload.update(extra_fields)
     return jwt.encode(payload, key)
 
