@@ -5,7 +5,7 @@
  */
 function setURLCurrentDirectory(cPath)
 {
-    let token = getUrlVars()["token"]
+    let token = getUrlVars()["token"];
     if (token)
     {
         history.pushState({path: cPath}, "", `?path=${cPath}&token=${token}`);
@@ -66,7 +66,7 @@ function processFileResponse(status, resp)
     else
     {
         resp = JSON.parse(resp);
-        notifyUserError("Error", `Change directory failed with code ${resp["status"]}. | Details: ${resp["details"]}`)
+        notifyUserError("Error", `Change directory failed with code ${resp["status"]}. | Details: ${resp["details"]}`);
     }
 }
 
@@ -100,7 +100,9 @@ function changeDirectoryParent()
         let currentPathSplit = currentPath.split("/"); // Split the path to arrays
         let newPath = currentPathSplit.slice(0, currentPathSplit.length - 1).join("/"); // Join every segment of the path except for the last part
         if (!newPath)  // If the joined path is empty that means the parent path must be root
+        {
             newPath = "/";
+        }
         changeDirectory(newPath);
     }
     else
@@ -114,8 +116,8 @@ function newFolder()
 {
     let newFolderName =  $("#new-folder-name").val();
     let currentPath = getUrlVars()["path"];
-    let newFolderPath = undefined;
-    if (currentPath.charAt(currentPath.length - 1) == "/")
+    let newFolderPath = null;
+    if (currentPath.charAt(currentPath.length - 1) === "/")
     {
         newFolderPath = `${currentPath}${newFolderName}`;
     }
@@ -128,18 +130,18 @@ function newFolder()
     sendRequest(`/api/folders?path=${newFolderPath}`, null, newFolderCallback, null, "PUT");
 }
 
-var lastNewDirPath = undefined;  // To lazy to actually think a better what to pass in lastNewDirPath into newFolderEnterDir
+var lastNewDirPath = null;  // To lazy to actually think a better what to pass in lastNewDirPath into newFolderEnterDir
 
 function newFolderCallback(status, resp)
 {
     if (status === 200)
     {
-        resp = JSON.parse(resp)
+        resp = JSON.parse(resp);
         let filePath = resp["path"];
         lastNewDirPath = filePath;
 
-        let filePathSplitted = filePath.split("/")
-        let fileName = filePathSplitted[filePathSplitted.length - 1]
+        let filePathSplitted = filePath.split("/");
+        let fileName = filePathSplitted[filePathSplitted.length - 1];
 
         fileContainerAddItem(fileName, filePath, "N/A", resp["lastmod"], true);
         notifyUserSuccessClickAction("Success", "Directory has been created. Click move to the directory", newFolderEnterDir);
@@ -147,7 +149,7 @@ function newFolderCallback(status, resp)
     else
     {
         resp = JSON.parse(resp);
-        notifyUserError("Error", `New Folder failed with code ${resp["status"]}. | Details: ${resp["details"]}`)
+        notifyUserError("Error", `New Folder failed with code ${resp["status"]}. | Details: ${resp["details"]}`);
     }
 }
 
@@ -179,7 +181,7 @@ function uploadFile()
                 {
                     let percent = (e.loaded / e.total * 100).toFixed(2);
                     $("#upload-progress").attr("aria-valuenow", percent).css("width", percent + "%").text(percent + "%");
-                    console.log("Percent Loaded: " + percent)
+                    // console.log("Percent Loaded: " + percent)
                 }
             });
 
@@ -193,31 +195,31 @@ function uploadFile()
         contentType: false,
         success: function()
         {
-            notifyUserSuccess("Success", "File uploaded successfully")
+            notifyUserSuccess("Success", "File uploaded successfully");
         },
 
         statusCode: 
         {
             401: function (xhr)
             {
-                console.log("UNAUTHORIZED");
+                // console.log("UNAUTHORIZED");
             },
             
             500: function (xhr)
             {
-                console.log("INTERNAL SERVER ERROR");
+                // console.log("INTERNAL SERVER ERROR");
             },
 
             0: function (xhr)
             {
-                console.log("REQUEST ABORTED. UNKNOWN");
+                // console.log("REQUEST ABORTED. UNKNOWN");
             }
         }
     });
 }
 
 
-function generateAccessTokenForPath(path)
+function generateAccessTokenForPath(path)  // TODO
 {
     sendRequest(`/api/access-token?path=${path}`, null, null);
 }

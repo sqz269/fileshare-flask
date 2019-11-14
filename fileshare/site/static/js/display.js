@@ -24,6 +24,7 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
 
     $templateElement.find("#file-type").append($img).removeAttr("id");
 
+    // Direct file link
     if (isDir)
     // Call changeDirectory if the clicked file is a directory, else we'll directly link the file which the server will serve
     {
@@ -37,33 +38,35 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
         }
         else
         {
-            $templateElement.find("#file-name").attr("href", `${fpath}?token=${getUrlVars()["token"]}`).html(fname).removeAttr("id");
+            $templateElement.find("#file-name").attr("href", `${fpath}`).html(fname).removeAttr("id");
         }
     }
 
     $templateElement.find("#file-lastmod").html(lastMod).removeAttr("id");
     $templateElement.find("#file-size").html(size).removeAttr("id");
 
+    // New tab stuff
     if (isDir)
     {
         if (allow_token_url_param && !readCookie("AccessToken") && getUrlVars()["token"])
         {
-            $templateElement.find("#file-operation-newtab").attr("href", `/?path=${fpath}&token=${getUrlVars()["token"]}`).attr("target", "_blank").removeAttr("id");
+            $templateElement.find("#file-newtab").attr("href", `/?path=${fpath}&token=${getUrlVars()["token"]}`).attr("target", "_blank").removeAttr("id");
+            $templateElement.find("#file-copy-token").click(function() {setClipBoardData(`/?path=${decodeURI(fpath)}?token=${getUrlVars()["token"]}`);})
         }
         else
         {
-            $templateElement.find("#file-operation-newtab").attr("href", `/?path=${fpath}`).attr("target", "_blank").removeAttr("id"); 
+            $templateElement.find("#file-newtab").attr("href", `/?path=${fpath}`).attr("target", "_blank").removeAttr("id"); 
         }
     }
     else
     {
         if (allow_token_url_param && !readCookie("AccessToken") && getUrlVars()["token"])
         {
-            $templateElement.find("#file-operation-newtab").attr("href", `${fpath}?token=${getUrlVars()["token"]}`).attr("target", "_blank").removeAttr("id");
+            $templateElement.find("#file-newtab").attr("href", `${fpath}?token=${getUrlVars()["token"]}`).attr("target", "_blank").removeAttr("id");
         }
         else
         {
-            $templateElement.find("#file-operation-newtab").attr("href", `${fpath}`).attr("target", "_blank").removeAttr("id");
+            $templateElement.find("#file-newtab").attr("href", `${fpath}`).attr("target", "_blank").removeAttr("id");
         }
     }
     

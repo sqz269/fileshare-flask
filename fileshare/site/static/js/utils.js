@@ -19,6 +19,11 @@ function sendRequest(url, data, callBack, contentType = "application/json", meth
     xhr.send(data);
 }
 
+function setClipBoardData(data)
+{
+    
+}
+
 function isLoggedIn() // TODO
 {
 
