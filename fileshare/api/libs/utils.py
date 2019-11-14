@@ -26,41 +26,65 @@ def get_url_param(url_params, target_param):
         return None
 
 
-def is_access_token_valid(cookies, path) -> bool:
+def get_cookie_value(cookies, cookie_name):
+    try:
+        return cookies[cookie_name]
+    except:
+        return None
+
+
+def is_access_token_valid(cookies, url_args, path) -> bool:
     """
     Check if an access token (required by configuration "ACCESS_PASSWORD") is a valid token
     Unlink is_access_token_valid this function also check
 
     :Args:
-        cookies (request.cookies -> dict) dictionary of cookies
+        cookies (request -> dict) dictionary of cookies
 
     :Return:
         (bool) True if the access token is valid, false if it is not
     """
     if configuration.config.get("ACCESS_PASSWORD"):
-        if 'AccessToken' in cookies:
-            return jwt_validate_access_token(cookies["AccessToken"], 
-                                            configuration.config.get("JWT_SECRET_KEY"), 
-                                            path)
-        return False
+
+        token = None
+        if configuration.config.get("TOKEN_IN_URL_PARAM"):
+            token = get_url_param(url_args, "token")
+
+        if "AccessToken" in cookies:
+            token = get_cookie_value(cookies, "AccessToken")
+
+        if not token: return False
+
+        return jwt_validate_access_token(token, 
+                                         configuration.config.get("JWT_SECRET_KEY"), 
+                                         path)
 
     return True
 
 
-def is_access_token_valid_no_path(cookies) -> bool:
+def is_access_token_valid_no_path(cookies, url_args) -> bool:
     """
     Check if an access token (required by configuration "ACCESS_PASSWORD") is a valid token
     Invokes is_access_token_valid with path paramater set to "/"
 
     :Args:
-        cookies (request.cookies -> dict) dictionary of cookies
+        request (request) the flask.request object
 
     :Return:
         (bool) True if the access token is valid, false if it is not
     """
     if configuration.config.get("ACCESS_PASSWORD"):
+
+        token = None
+        if configuration.config.get("TOKEN_IN_URL_PARAM"):
+            token = get_url_param(url_args, "token")
+
         if "AccessToken" in cookies:
-            return jwt_validate(cookies["AccessToken"], configuration.config.get("JWT_SECRET_KEY"))
+            token = get_cookie_value(cookies, "AccessToken")
+
+        if not token: return False
+
+        return jwt_validate(token, configuration.config.get("JWT_SECRET_KEY"))
     return False
 
 
@@ -71,7 +95,7 @@ def is_login_token_valid(cookies) -> bool:
     return False
 
 
-def is_requirements_met_file(operation, cookies, path):
+def is_requirements_met_file(operation, cookies, url_params, path):
     """
     Check if all privilege requirements are satisfied to change the file
 
@@ -92,7 +116,7 @@ def is_requirements_met_file(operation, cookies, path):
         "MKDIR": "MKDIR_AUTH_REQUIRED"
     }
 
-    current_privilege = [is_access_token_valid(cookies, path), is_login_token_valid(cookies)]
+    current_privilege = [is_access_token_valid(cookies, url_params, path), is_login_token_valid(cookies)]
 
     is_access_password_enabled = configuration.config.get("ACCESS_TOKEN") == True
     # Convert the string to boolean to keep consistency at required_privilege
@@ -108,7 +132,7 @@ def is_requirements_met_file(operation, cookies, path):
     return True
 
 
-def is_requirements_met_token_issue(cookies, path):
+def is_requirements_met_token_issue(cookies, url_param, path):
     """
     Check if all privilege requirements are satisfied to issue a temporary access token
 
@@ -126,11 +150,11 @@ def is_requirements_met_token_issue(cookies, path):
     if not allow_user_issue_token: return False
 
     if user_issue_toke_auth_required:
-        if not is_login_token_valid(cookies) and not is_access_token_valid(cookies, path):
+        if not is_login_token_valid(cookies) and not is_access_token_valid(cookies, url_param, path):
             return False
 
     else:
-        if not is_access_token_valid(cookies, path):
+        if not is_access_token_valid(cookies, url_param, path):
             return False
 
     return True
@@ -139,6 +163,10 @@ def is_requirements_met_token_issue(cookies, path):
 def jwt_validate_access_token(src_jwt: str, key: str, current_path: str):
     try:
         jwt_decoded = jwt.decode(src_jwt, key)
+        
+        if current_path[0] != "/":
+            current_path = "/" + current_path
+
         is_path_valid = os.path.commonprefix((current_path, jwt_decoded["PATH"])) == jwt_decoded["PATH"]
         return (time.time() < (int(configuration.config.get("JWT_VALID_FOR")) + int(jwt_decoded["iat"]))) and (is_path_valid)
     except:

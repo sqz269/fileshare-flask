@@ -93,7 +93,7 @@ def login():
 def list_dir():
     path = get_url_param(request.args, "path")
 
-    if not is_access_token_valid(request.cookies, path):
+    if not is_access_token_valid(request.cookies, request.args, path):
         return make_status_resp(4, STATUS_TO_MESSAGE[4], STATUS_TO_HTTP_CODE[4])
 
     if not path:

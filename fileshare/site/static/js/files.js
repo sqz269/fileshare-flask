@@ -5,7 +5,15 @@
  */
 function setURLCurrentDirectory(cPath)
 {
-    history.pushState({path: cPath}, "", `?path=${cPath}`);
+    let token = getUrlVars()["token"]
+    if (token)
+    {
+        history.pushState({path: cPath}, "", `?path=${cPath}&token=${token}`);
+    }
+    else
+    {
+        history.pushState({path: cPath}, "", `?path=${cPath}`);
+    }
 }
 
 /**
@@ -70,7 +78,15 @@ function processFileResponse(status, resp)
  */
 function changeDirectory(dst)
 {
-    sendRequest(`/api/files?path=${dst}`, null, processFileResponse);
+    let token = getUrlVars()["token"];
+    if (token)
+    {
+        sendRequest(`/api/files?path=${dst}&token=${token}`, null, processFileResponse);
+    }
+    else
+    {
+        sendRequest(`/api/files?path=${dst}`, null, processFileResponse);
+    }
 }
 
 /**

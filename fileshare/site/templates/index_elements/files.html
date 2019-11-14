@@ -1,3 +1,9 @@
+<style>
+.hover-hand {
+    cursor: pointer;
+}
+</style>
+
 <div class="d-none">
     <img id="img-file" src="{{ url_for('site.static', filename='assets/file.svg') }}">
     <img id="img-dir" src="{{ url_for('site.static', filename='assets/directory.svg') }}">
@@ -8,7 +14,19 @@
             <td><a id="file-name" href="#"></a></td>
             <td id="file-lastmod"></td>
             <td id="file-size"></td>
-            <td><a id="file-operation-newtab" href="#">Open (New Tab)</a></td>
+            <td>
+                <div class="dropdown">
+                    <a class="btn-link dropdown-toggle hover-hand" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Options
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a id="file-newtab" class="dropdown-item hover-hand" href="" target="_blank">Open (New Tab)</a>
+                        <div id="file-option-divi" class="dropdown-divider"></div>
+                        <a id="file-copy-token" class="dropdown-item hover-hand" onclick="">Copy Link (Own AccessToken)</a>
+                        <a id="file-share-token" class="dropdown-item hover-hand" onclick="">Copy Share Link (New Token)</a>
+                    </div>
+                </div>
+            </td>
         </tr>
     </table>
 </div>

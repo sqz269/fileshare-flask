@@ -19,6 +19,24 @@ function sendRequest(url, data, callBack, contentType = "application/json", meth
     xhr.send(data);
 }
 
+function isLoggedIn() // TODO
+{
+
+}
+
+
+function getTokenForPath()
+{
+
+}
+
+function getOwnTokenForPath()
+{
+    let cookeValue = readCookie("AccessToken");
+    // let completeUrlWithParam = `${}${}`
+}
+
+
 /**
  * Get url paramaters
  * https://html-online.com/articles/get-url-parameters-javascript/

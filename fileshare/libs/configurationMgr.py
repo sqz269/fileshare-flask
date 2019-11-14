@@ -71,7 +71,7 @@ class ConfigurationMgr(object, metaclass=Singleton):
         self.config["FILE_MIME"] = cfg_file["file_mime"]
 
         self.config["JWT_SECRET_KEY"] = cfg_jwt["JWT_key"]
-        self.config["JWT_VALID_FOR"] = cfg_jwt["JWT_valid_for"]
+        self.config["JWT_VALID_FOR"] = int(cfg_jwt["JWT_valid_for"])
 
         self.config["TOKEN_IN_URL_PARAM"] = cfg_permission.getboolean("allow_access_token_as_url_param")
         self.config["USER_ISSUED_TOKEN"] = cfg_permission.getboolean("allow_user_issue_token")

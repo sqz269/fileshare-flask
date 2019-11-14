@@ -14,7 +14,7 @@ mime = magic.Magic(mime=True)
 
 @site.route('/', methods=["GET"])
 def homepage():
-    if is_access_token_valid_no_path(request.cookies):
+    if is_access_token_valid_no_path(request.cookies, request.args):
         return render_template("index.html")
     else:
         return render_template("password.html")
@@ -46,7 +46,7 @@ def files(path):
         if configuration.config.get("FILE_MIME"):
             f_mime = configuration.config.get("FILE_MIME")
 
-        if is_access_token_valid(request.cookies, path):
+        if is_access_token_valid(request.cookies, request.args, path):
             if is_mode_download:
                 return send_from_directory(configuration.config.get("SHARED_DIR"), path, as_attachment=True)
             else:

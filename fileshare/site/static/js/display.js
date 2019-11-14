@@ -21,6 +21,7 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
         $img = $("#img-dir").clone(false).removeAttr("id");
     else
         $img = $("#img-file").clone(false).removeAttr("id");
+
     $templateElement.find("#file-type").append($img).removeAttr("id");
 
     if (isDir)
@@ -30,7 +31,14 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
     }
     else
     {
-        $templateElement.find("#file-name").attr("href", fpath).html(fname).removeAttr("id");
+        if (allow_token_url_param && !readCookie("AccessToken") && getUrlVars()["token"])
+        {
+            $templateElement.find("#file-name").attr("href", `${fpath}?token=${getUrlVars()["token"]}`).html(fname).removeAttr("id");
+        }
+        else
+        {
+            $templateElement.find("#file-name").attr("href", `${fpath}?token=${getUrlVars()["token"]}`).html(fname).removeAttr("id");
+        }
     }
 
     $templateElement.find("#file-lastmod").html(lastMod).removeAttr("id");
@@ -38,16 +46,29 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
 
     if (isDir)
     {
-        $templateElement.find("#file-operation-newtab").attr("href", `/?path=${fpath}`).attr("target", "_blank").removeAttr("id");
+        if (allow_token_url_param && !readCookie("AccessToken") && getUrlVars()["token"])
+        {
+            $templateElement.find("#file-operation-newtab").attr("href", `/?path=${fpath}&token=${getUrlVars()["token"]}`).attr("target", "_blank").removeAttr("id");
+        }
+        else
+        {
+            $templateElement.find("#file-operation-newtab").attr("href", `/?path=${fpath}`).attr("target", "_blank").removeAttr("id"); 
+        }
     }
     else
     {
-        $templateElement.find("#file-operation-newtab").attr("href", fpath).attr("target", "_blank").removeAttr("id");
+        if (allow_token_url_param && !readCookie("AccessToken") && getUrlVars()["token"])
+        {
+            $templateElement.find("#file-operation-newtab").attr("href", `${fpath}?token=${getUrlVars()["token"]}`).attr("target", "_blank").removeAttr("id");
+        }
+        else
+        {
+            $templateElement.find("#file-operation-newtab").attr("href", `${fpath}`).attr("target", "_blank").removeAttr("id");
+        }
     }
     
     $templateElement.appendTo(elementToAppend);
 }
-
 
 /**
  * Set total files and dirs number to display
