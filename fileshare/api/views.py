@@ -118,7 +118,7 @@ def upload():
     path = utils.get_url_param(request.args, "path")
 
     # Some work around had to be used do to this bug: https://github.com/pallets/werkzeug/issues/875
-    if not utils.is_requirements_met_file("UPLOAD", request.cookies, path):
+    if not utils.is_requirements_met_file("UPLOAD", request.cookies, request.args, path):
         return utils.make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
 
 
@@ -144,7 +144,7 @@ def upload():
 def delete():
     path = utils.get_url_param(request.args, "path")
 
-    if not utils.is_requirements_met_file("DELETE", request.cookies, path):
+    if not utils.is_requirements_met_file("DELETE", request.cookies, request.args, path):
         return utils.make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
 
     # abs_path = paths.make_abs_path_from_url()
@@ -154,7 +154,7 @@ def delete():
 def new_folder():
     path = utils.get_url_param(request.args, "path")
 
-    if not utils.is_requirements_met_file("MKDIR", request.cookies, path):
+    if not utils.is_requirements_met_file("MKDIR", request.cookies, request.args, path):
         return utils.make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
 
     if not path:
@@ -167,7 +167,8 @@ def new_folder():
 
     try:
         os.mkdir(dir_abs_path)
-        return utils.make_json_resp_with_status({"status": 0, "details": "Successfully created directory", "path": path, "lastmod": os.path.getmtime(dir_abs_path)}, 200)
+        return utils.make_json_resp_with_status({"status": 0, "details": "Successfully created directory", 
+                                                "path": path, "lastmod": os.path.getmtime(dir_abs_path)}, 200)
     except FileExistsError:
         return utils.make_status_resp(100, STATUS_TO_MESSAGE[100], STATUS_TO_HTTP_CODE[100])
     except PermissionError:

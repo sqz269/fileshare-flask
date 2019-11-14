@@ -58,5 +58,5 @@ def files(path):
             return send_from_directory(configuration.config.get("SHARED_DIR"), path, as_attachment=True)
         else:
             return send_from_directory(configuration.config.get("SHARED_DIR"), path, mimetype=f_mime)
-    except (PermissionError, FileNotFoundError) as e:
+    except (PermissionError, FileNotFoundError):
         return render_template("error/404.html")
