@@ -3,7 +3,6 @@ $(document).ready (initialize);
 
 function initialize()
 {
-    setInitialDirectory();
     retrieveServerSettings();
 }
 
@@ -54,6 +53,8 @@ function retrieveServerSettingsCallback(status, resp)
     {
         $("#file-option-divi").addClass("d-none");
     }
+
+    setInitialDirectory(); // Prevent Race condition
 }
 
 
