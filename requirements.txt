@@ -8,3 +8,5 @@ pyjwt
 
 libmagic
 python-magic
+
+flask-sqlalchemy

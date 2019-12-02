@@ -28,6 +28,9 @@ class ConfigurationMgr(object, metaclass=Singleton):
             "DELETE_AUTH_REQUIRED": None,
             "MKDIR_AUTH_REQUIRED": None,
             "RENAME_AUTH_REQUIRED": None,
+
+
+            "DATABASE": None
         }
 
         self.str_to_logging_lvl = {
@@ -39,6 +42,10 @@ class ConfigurationMgr(object, metaclass=Singleton):
         }
 
         self.logger_name = None
+
+
+    def initializing_database(self):
+        pass
 
 
     def read_config(self, path):
