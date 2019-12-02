@@ -9,7 +9,7 @@
  * @param {Selector} elementToAppend a jquery selector that points to the table the element will be appended to
  *                                   Default value is #file-container
  */
-function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppend="#file-container")
+function fileContainerAddItemD(fname, fpath, size, lastMod, isDir, elementToAppend="#file-container")
 {
     let $templateElement = $("#file-template").clone(false);
     $templateElement.removeAttr("id");
@@ -32,7 +32,7 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
     }
     else
     {
-        if (allow_token_url_param && !readCookie("AccessToken") && getUrlVars()["token"])
+        if (cfgAllowTokenUrlParam && !readCookie("AccessToken") && getUrlVars()["token"])
         {
             $templateElement.find("#file-name").attr("href", `${fpath}?token=${getUrlVars()["token"]}`).html(fname).removeAttr("id");
         }
@@ -48,10 +48,10 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
     // New tab stuff
     if (isDir)
     {
-        if (allow_token_url_param && !readCookie("AccessToken") && getUrlVars()["token"])
+        if (cfgAllowTokenUrlParam && !readCookie("AccessToken") && getUrlVars()["token"])
         {
             $templateElement.find("#file-newtab").attr("href", `/?path=${fpath}&token=${getUrlVars()["token"]}`).attr("target", "_blank").removeAttr("id");
-            $templateElement.find("#file-copy-token").click(function() {setClipBoardData(`/?path=${decodeURI(fpath)}?token=${getUrlVars()["token"]}`);})
+            $templateElement.find("#file-copy-token").click(function() {setClipBoardData(`/?path=${decodeURI(fpath)}&token=${getUrlVars()["token"]}`);})
         }
         else
         {
@@ -60,7 +60,7 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
     }
     else
     {
-        if (allow_token_url_param && !readCookie("AccessToken") && getUrlVars()["token"])
+        if (cfgAllowTokenUrlParam && !readCookie("AccessToken") && getUrlVars()["token"])
         {
             $templateElement.find("#file-newtab").attr("href", `${fpath}?token=${getUrlVars()["token"]}`).attr("target", "_blank").removeAttr("id");
         }
@@ -72,6 +72,77 @@ function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppen
     
     $templateElement.appendTo(elementToAppend);
 }
+
+
+function fileContainerAddItem(fname, fpath, size, lastMod, isDir, elementToAppend="#file-container")
+{
+    var $template = $("#file-template").clone(false).removeAttr("id");
+
+    $template.find("#file-selection").attr("value", fpath).removeAttr("id");
+    $template.find("#file-lastmod").html(lastMod).removeAttr("id");
+    $template.find("#file-size").html(size).removeAttr("id");
+
+    var $icon;
+    if (isDir)
+    {
+        $icon = $("#img-dir").clone(false).removeAttr("id");
+        $template.find("#file-name").attr("href", `javascript:changeDirectory("${fpath}");`).html(fname).removeAttr("id");
+        // changeDirectory function will handle url tokens
+    
+        if (cfgAllowTokenUrlParam && !readCookie("AccessToken") && getUrlVars()["token"])
+        {
+            $template.find("#file-newtab").attr("href", `/?path=${fpath}&token=${getUrlVars()["token"]}`).attr("target", "_blank").removeAttr("id");
+        }
+        else
+        {
+            $template.find("#file-newtab").attr("href", `/?path=${fpath}`).attr("target", "_blank").removeAttr("id"); 
+        }
+    }
+    else  // If it's not a directory
+    {
+        $icon = $("#img-file").clone(false).removeAttr("id");
+
+        if (cfgAllowTokenUrlParam && !readCookie("AccessToken") && getUrlVars()["token"])
+        {
+            $template.find("#file-newtab").attr("href", `${fpath}?token=${getUrlVars()["token"]}`).attr("target", "_blank").removeAttr("id");
+            $template.find("#file-name").attr("href", `${fpath}?token=${getUrlVars()["token"]}`).html(fname).removeAttr("id");
+        }
+        else
+        {
+            $template.find("#file-newtab").attr("href", `${fpath}`).attr("target", "_blank").removeAttr("id");
+            $template.find("#file-name").attr("href", `${fpath}`).html(fname).removeAttr("id");
+        }
+    }
+
+    console.log(cfgAllowTokenUrlParam);
+    if (cfgAllowTokenUrlParam)
+    {
+        var token = null;
+        if (getUrlVars()["token"])
+        {
+            token = getUrlVars()["token"]
+        }
+        else
+        {
+            token = readCookie("AccessToken");
+        }
+        // console.log(`${window.location.origin}/?path=${decodeURI(fpath)}&token=${token}`);
+        if (isDir)
+        {
+            $template.find("#access-token-link").val(`${window.location.origin}/?path=${decodeURI(fpath)}&token=${token}`).click(function() {console.log("Bruh")}).removeAttr("id");
+        }
+        else
+        {
+            $template.find("#access-token-link").val(`${window.location.origin}${decodeURI(fpath)}?token=${token}`).click(function() {console.log("Bruh")}).removeAttr("id");
+        }
+        $template.find("#file-copy-token").click(function() {setClipBoardData()});
+    }
+
+    $template.find("#file-type").append($icon).removeAttr("id");
+
+    $template.appendTo(elementToAppend);
+}
+
 
 /**
  * Set total files and dirs number to display

@@ -21,6 +21,7 @@ function sendRequest(url, data, callBack, contentType = "application/json", meth
 
 function setClipBoardData(data)
 {
+    console.log(`Clipboard data: ${data}`);
     
 }
 

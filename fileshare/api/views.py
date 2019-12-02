@@ -66,7 +66,7 @@ def issue_access_password():
     if not path:
         return utils.make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
 
-    if utils.is_requirements_met_token_issue(request.cookies, path):
+    if utils.is_requirements_met_token_issue(request.cookies, request.args, path):
         return utils.make_json_resp_with_status({"status": 0,
                                            "details": "success",
                                            "token": utils.jwt_issue_access_token(path).decode()}, 200)
@@ -167,7 +167,7 @@ def new_folder():
 
     try:
         os.mkdir(dir_abs_path)
-        return utils.make_json_resp_with_status({"status": 0, "details": "Successfully created directory", 
+        return utils.make_json_resp_with_status({"status": 0, "details": "Successfully created directory",
                                                 "path": path, "lastmod": os.path.getmtime(dir_abs_path)}, 200)
     except FileExistsError:
         return utils.make_status_resp(100, STATUS_TO_MESSAGE[100], STATUS_TO_HTTP_CODE[100])
