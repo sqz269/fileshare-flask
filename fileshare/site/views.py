@@ -14,10 +14,13 @@ mime = magic.Magic(mime=True)
 
 @site.route('/', methods=["GET"])
 def homepage():
-    if is_access_token_valid_no_path(request.cookies, request.args):
-        return render_template("index.html")
+    if configuration.config.get("ACCESS_PASSWORD"):
+        if is_access_token_valid_no_path(request.cookies, request.args):
+            return render_template("index.html")
+        else:
+            return render_template("password.html")
     else:
-        return render_template("password.html")
+        return render_template("index.html")
 
 
 # Request a file to serve, url paramater "mode" is avaliable
