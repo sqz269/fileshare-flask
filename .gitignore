@@ -4,6 +4,8 @@
 # Created db file
 *.db
 
+db_info.json
+
 config_local.py
 
 # Gitpod workspace
