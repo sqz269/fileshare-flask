@@ -4,7 +4,7 @@
 # Created db file
 *.db
 
-config_local.ini
+config_local.py
 
 # Gitpod workspace
 .theia

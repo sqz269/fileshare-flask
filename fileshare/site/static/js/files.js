@@ -220,6 +220,8 @@ function deleteFile()
 
     sendRequest("/api/folder", JSON.stringify(delete_json), deleteFileCallBack, "application/json", "DELETE");
 
+    $("#delete-modal").modal("hide");
+
     function deleteFileCallBack(status, resp)
     {
         resp = JSON.parse(resp);   

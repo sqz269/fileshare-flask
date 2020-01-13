@@ -1,6 +1,8 @@
 from flask import Blueprint, request
 
 from fileshare.shared.database.common_query import CommonQuery
+from fileshare.shared.database.Directory import Directory
+from fileshare.shared.database.File import File
 
 from fileshare.api.libs.status_to_msg import STATUS_TO_MESSAGE, STATUS_TO_HTTP_CODE
 from fileshare.api.libs import api_utils
@@ -14,6 +16,7 @@ from fileshare import app
 
 from sqlalchemy import exc  # Sqlalchemy exceptions
 from werkzeug import secure_filename
+
 import os
 
 api = Blueprint("api", __name__, url_prefix="/api")
@@ -86,7 +89,6 @@ def upload():
 @api.route("/folder", methods=["DELETE"])
 @api.route("/file", methods=["DELETE"])
 def delete():
-    # TODO
     content = request.json
 
     targets = []
@@ -111,20 +113,20 @@ def delete():
     for target in targets:
         if app.config["DELETE_MODE"] == 1:  # Remove the target both from the file system and the database
             try:
-                os.remove(target.abs_path)
-                db.session.delete(target)
+                api_utils.delete_file_or_directory_from_filesystem(target)
+                api_utils.delete_file_or_directory_from_db(target)
             except PermissionError:
                 failed_to_delete.append(target.rel_path)
                 failed_to_delete_reason = 101
                 continue
 
         elif app.config["DELETE_MODE"] == 2:  # Only Remove the target from the database not the filesystem
-            db.session.delete(target)
+            api_utils.delete_file_or_directory_from_db(target)
 
     db.session.commit()
 
     if failed_to_delete:
-        return utils.make_status_resp(0, f"Errors [{STATUS_TO_MESSAGE[failed_to_delete_reason]}] has prevented some file from being deleted. A total of {len(failed_to_delete)} files out of {len(target)} failed to be deleted")
+        return utils.make_status_resp(0, f"Errors [{STATUS_TO_MESSAGE[failed_to_delete_reason]}] has prevented some file from being deleted. A total of {len(failed_to_delete)} files out of {len(targets)} failed to be deleted", STATUS_TO_HTTP_CODE[0])
 
 
     return utils.make_status_resp_ex(0)

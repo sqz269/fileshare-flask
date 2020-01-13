@@ -126,10 +126,13 @@ def get_directory_info(path: str, dirpath: str, file_content: dict, dir_content:
 
     name = dirpath.split("/")[-1] if os.name != "nt" else dirpath.split("\\")[-1]
 
+    parent_path = rel_path[:len(rel_path) - len(name)].rstrip(os.sep)
+    if not parent_path: parent_path = os.sep
+
     dir_info = {
         "relative_path" : rel_path,
         "absolute_path" : abs_path,
-        "parent_path"   : rel_path[:len(rel_path) - len(name)].rstrip(os.sep),
+        "parent_path"   : parent_path,
         "name"          : name,
         "last_mod"      : last_mod,
         "sub_dir_count" : dir_count,
