@@ -51,4 +51,3 @@ function notifyUserSuccessClickAction(heading, message, onClickFunction)
         onClick: onClickFunction
     });
 }
-

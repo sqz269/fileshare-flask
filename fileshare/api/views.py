@@ -1,15 +1,20 @@
 from flask import Blueprint, request
-from werkzeug import secure_filename
 
-from fileshare.libs.configurationMgr import ConfigurationMgr
-from fileshare.api.libs import paths
-from fileshare.api.libs import utils
+from fileshare.shared.database.common_query import CommonQuery
 
 from fileshare.api.libs.status_to_msg import STATUS_TO_MESSAGE, STATUS_TO_HTTP_CODE
+from fileshare.api.libs import api_utils
 
+from fileshare.shared.libs import utils
+from fileshare.shared.libs import paths
+
+from fileshare.shared.database.database import db
+
+from fileshare import app
+
+from sqlalchemy import exc  # Sqlalchemy exceptions
+from werkzeug import secure_filename
 import os
-
-configuration = ConfigurationMgr()
 
 api = Blueprint("api", __name__, url_prefix="/api")
 
@@ -32,144 +37,119 @@ Resource Related Errors
 103 - Path provided does not exist
 """
 
-@api.route("/access-password", methods=["POST"])
-def process_access_password():
-    # Password json looks like { "password": password }
-    if configuration.config.get("ACCESS_PASSWORD"):  # If access_password is enabled
-        try:
-            password = request.get_json()
-        except (KeyError, TypeError):
-            return utils.make_status_resp(2, STATUS_TO_MESSAGE[2], STATUS_TO_HTTP_CODE[2])
-
-        if password["password"] == configuration.config.get("ACCESS_PASSWORD"):
-            resp = utils.make_status_resp(0, "Authorized", STATUS_TO_HTTP_CODE[0])
-            resp.set_cookie("AccessToken",
-                            utils.jwt_issue_access_token("/"),
-                            max_age=int(configuration.config.get("JWT_VALID_FOR")))
-            return resp
-
-        else:
-            return utils.make_status_resp(3, STATUS_TO_MESSAGE[3], STATUS_TO_HTTP_CODE[3])
-    else:
-        return utils.make_status_resp(1, "Access Password is not in use", STATUS_TO_HTTP_CODE[1])
-
-
-# use like /api/access-token?path=<URLPath>
-# URLPath is the path that the access token will be valid for
-# for example if the URLPath is /myPresentation/group
-# Any files in /myPresentation/group will be accessible with the token
-# But files in /myDocs/own will not be accessible with the token
-@api.route("/access-token", methods=["POST"])
-def issue_access_password():
+@api.route("/file", methods=["POST"])
+@api.route("/folder", methods=["POST"])
+def list_directory():
     path = utils.get_url_param(request.args, "path")
 
-    if not path:
-        return utils.make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
+    target_type = utils.get_url_param(request.args, "type")
 
-    if utils.is_requirements_met_token_issue(request.cookies, request.args, path):
-        return utils.make_json_resp_with_status({"status": 0,
-                                           "details": "success",
-                                           "token": utils.jwt_issue_access_token(path).decode()}, 200)
-    else:
-        # Might change to a clear message for case of user issued access token is disabled
-        return utils.make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
+    if os.name == "nt":
+        path = path.replace("/", "\\")
+    
+    directory = CommonQuery.query_dir_by_relative_path(path)
 
+    if not directory:
+        return utils.make_status_resp_ex(103)
 
-@api.route("/access-token", methods=["OPTION"])
-def get_access_token_settings():
-    return utils.make_json_resp_with_status({"token_in_url_param": configuration.config.get("TOKEN_IN_URL_PARAM"),
-                                            "user_issued_token": configuration.config.get("USER_ISSUED_TOKEN"),
-                                            "user_issue_token_require_auth": configuration.config.get("USER_ISSUE_TOKEN_AUTH_REQUIRED")}, 200)
+    return utils.make_json_resp_with_status(api_utils.db_directory_to_api_resp(directory), 200)
 
 
-@api.route("/login")
-def login():
-    pass
-
-
-# File api should be accessed like
-# /api/files?path=<path_of_file>
-@api.route('files', methods=["POST"])
-def list_dir():
-    path = utils.get_url_param(request.args, "path")
-
-    if not utils.is_access_token_valid(request.cookies, request.args, path):
-        return utils.make_status_resp(4, STATUS_TO_MESSAGE[4], STATUS_TO_HTTP_CODE[4])
-
-    if not path:
-        return utils.make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
-
-    try:
-        dir_data = paths.list_files_from_url(path, configuration.config.get("SHARED_DIR"))
-    except AssertionError:
-        return utils.make_status_resp(102, STATUS_TO_MESSAGE[102], STATUS_TO_HTTP_CODE[102])
-    except FileNotFoundError:
-        return utils.make_status_resp(103, "target path: {} does not exist".format(path), STATUS_TO_HTTP_CODE[103])
-
-    return utils.make_json_resp_with_status(dir_data, 200)
-
-
-# send PUT Request to files with argument path to specify the path
-# and argument filename to specify the filename
-# for example PUT /api/files?path=/example-path/&filename=test
-# will upload a file to /example-path/ with the filename of test
-@api.route('files', methods=["PUT"])
+@api.route("/file", methods=["PUT"])
 def upload():
     path = utils.get_url_param(request.args, "path")
 
-    # Some work around had to be used do to this bug: https://github.com/pallets/werkzeug/issues/875
-    if not utils.is_requirements_met_file("UPLOAD", request.cookies, request.args, path):
-        return utils.make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
-
-
-    if not path:
-        return utils.make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
-
-    dir_abs_path = paths.make_abs_path_from_url(path, configuration.config.get("SHARED_DIR"), False)
+    if os.name == "nt":
+        path = path.replace("/", "\\")
 
     files = request.files.getlist("File")
 
+    parent_dir = CommonQuery.query_dir_by_relative_path(path)
+    if not parent_dir: return utils.make_status_resp_ex(103)
+
     for file in files:
-        if configuration.config.get("SECURE_UPLOAD_FILENAME"):
-            file_name = secure_filename(file.filename)
-        else:
-            file_name = file.filename
-        dst_path = paths.make_abs_path_from_url(file_name, dir_abs_path.decode(), fix_nt_path=True)
-        file.save(dst_path.decode())
+        file_name = secure_filename(file.filename) if app.config["SECURE_UPLOAD_FILENAME"] else file.filename
+        file_path = os.path.join(parent_dir.abs_path, file_name)  # Construct the new file's absolute path
+        file.save(file_path)  # THe file have to be save before the database write cuz it needs to detect it's mime type
+        print("Saving file to: {}".format(file_path))
 
-    return utils.make_status_resp(0, "File uploaded successfully", STATUS_TO_HTTP_CODE[0])
+        # Add the file into the parent directory's record
+        parent_dir.content_file = parent_dir.content_file + f",{file_name}" # Comma separated
+
+        CommonQuery.insert_new_file_record(parent_dir, file_name, commit=False)
+
+    db.session.commit()  # Update the parent folder's database entry to match the newly added file names
+
+    return utils.make_status_resp_ex(0)
 
 
-@api.route('files', methods=["DELETE"])
+@api.route("/folder", methods=["DELETE"])
+@api.route("/file", methods=["DELETE"])
 def delete():
-    path = utils.get_url_param(request.args, "path")
+    # TODO
+    content = request.json
 
-    if not utils.is_requirements_met_file("DELETE", request.cookies, request.args, path):
-        return utils.make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
+    targets = []
 
-    # abs_path = paths.make_abs_path_from_url()
+    for path in content["folder"]:
+        if os.name == "nt": path = path.replace("/", "\\")
+        folder = CommonQuery.query_dir_by_relative_path(path)
+        if not folder:
+            return utils.make_status_resp(103, f"Folder with path: {path} does not exist", STATUS_TO_HTTP_CODE[103])
+        targets.append(folder)
+
+    for path in content["file"]:
+        if os.name == "nt": path = path.replace("/", "\\")
+        file = CommonQuery.query_file_by_relative_path(path)
+        if not file:
+            return utils.make_status_resp(103, f"File with path: {path} does not exist", STATUS_TO_HTTP_CODE[103])
+        targets.append(file)
+
+    failed_to_delete = []  # A list to store list of relative path if os.removed failed to remove them
+    failed_to_delete_reason = None
+
+    for target in targets:
+        if app.config["DELETE_MODE"] == 1:  # Remove the target both from the file system and the database
+            try:
+                os.remove(target.abs_path)
+                db.session.delete(target)
+            except PermissionError:
+                failed_to_delete.append(target.rel_path)
+                failed_to_delete_reason = 101
+                continue
+
+        elif app.config["DELETE_MODE"] == 2:  # Only Remove the target from the database not the filesystem
+            db.session.delete(target)
+
+    db.session.commit()
+
+    if failed_to_delete:
+        return utils.make_status_resp(0, f"Errors [{STATUS_TO_MESSAGE[failed_to_delete_reason]}] has prevented some file from being deleted. A total of {len(failed_to_delete)} files out of {len(target)} failed to be deleted")
 
 
-@api.route('folders', methods=["PUT"])
-def new_folder():
-    path = utils.get_url_param(request.args, "path")
+    return utils.make_status_resp_ex(0)
 
-    if not utils.is_requirements_met_file("MKDIR", request.cookies, request.args, path):
-        return utils.make_status_resp(6, STATUS_TO_MESSAGE[6], STATUS_TO_HTTP_CODE[6])
 
-    if not path:
-        return utils.make_status_resp(2, "Required url paramater 'path' is not provided", STATUS_TO_HTTP_CODE[2])
+@api.route("/folder", methods=["PUT"])
+def folder():
+    path = utils.get_url_param(request.args, "path")  # Folder's parent path
+    name = utils.get_url_param(request.args, "name")  # new folder's name
+
+    if os.name == "nt":
+        path = path.replace("/", "\\")
+
+    parent_dir = CommonQuery.query_dir_by_relative_path(path)
+    if not parent_dir: return utils.make_status_resp_ex(103)  # Parent folder isn't valid
+
+    name = secure_filename(name) if app.config["SECURE_UPLOAD_FILENAME"] else name
+
+    CommonQuery.insert_new_dir_record(parent_dir, name, commit=False)
+
+    parent_dir.content_dir = parent_dir.content_dir + f",{name}"
 
     try:
-        dir_abs_path = paths.make_abs_path_from_url(path, configuration.config.get("SHARED_DIR"), False)
-    except AssertionError:
-        return utils.make_status_resp(102, STATUS_TO_MESSAGE[102], STATUS_TO_HTTP_CODE[102])
+        db.session.commit()
+    except exc.IntegrityError as err:
+        return utils.make_status_resp_ex(100)
 
-    try:
-        os.mkdir(dir_abs_path)
-        return utils.make_json_resp_with_status({"status": 0, "details": "Successfully created directory",
-                                                "path": path, "lastmod": os.path.getmtime(dir_abs_path)}, 200)
-    except FileExistsError:
-        return utils.make_status_resp(100, STATUS_TO_MESSAGE[100], STATUS_TO_HTTP_CODE[100])
-    except PermissionError:
-        return utils.make_status_resp(101, STATUS_TO_MESSAGE[101], STATUS_TO_HTTP_CODE[101])
+    return utils.make_status_resp_ex(0)

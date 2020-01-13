@@ -1,0 +1,52 @@
+<style>
+    .hover-hand {
+        cursor: pointer;
+    }
+</style>
+
+<div class="d-none">
+    <table>
+        <tr id="dir-template">
+            <th scope="row" class="text-center"><input id="dir-selection" class="check-dir" type="checkbox" value=""></th>
+            <td class="text-center"><div class="file-type" class="svg-icon"><img id="img-dir" src="{{ url_for('site.static', filename='assets/directory.svg') }}"></div></td>
+            <td><a id="dir-name" href="#"></a></td>
+            <td id="dir-lastmod"></td>
+            <td id="dir-size"></td>
+            <td id="dir-content-file-count"></td>
+            <td id="dir-content-dir-count"></td>
+        </tr>
+    </table>
+</div>
+
+    
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <th style="width: 3%;" class="text-center">
+                <input type="checkbox" id="check-all-folder">
+            </th>
+            <th style="width: 2%;">Type</th>
+            <th style="width: 50%;">Name</th>
+            <th style="width: 15%;" class="text-nowrap">Last Modified</th>
+            <th style="width: 7%;">Size(KB)</th>
+            <th style="width: 7%;">File Count</th>
+            <th style="width: 7%;">Dir Count</th>
+        </thead>
+
+        <tbody id="folder-container">
+            <tr>
+                <th scope="row" class="text-center">
+                    <img src="{{ url_for('site.static', filename='assets/parent.svg') }}">
+                </th>
+                <th colspan="4">
+                    <a href="javascript:changeDirectoryParent();">Go to parent directory</a>
+                </th>
+                <th class="border-left-1 border-dark" colspan="2">
+                    <div class="d-flex justify-content-between">
+                        <span id="file-count">0</span><span>Files</span> <span id="dir-count">0</span><span>Dirs</span>
+                    </div>
+                </th>
+            </tr>
+        </tbody>
+    </table>
+</div>

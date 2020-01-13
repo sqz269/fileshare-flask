@@ -1,0 +1,54 @@
+<div class="d-none">
+    <table>
+        <tr id="file-template">
+            <th scope="row"class="text-center"><input id="file-selection" class="check-file" type="checkbox" value=""></th>
+            <td class="text-center"><div class="file-type" class="svg-icon"><img id="img-file" src="{{ url_for('site.static', filename='assets/file.svg') }}"></div></td>
+            <td><a id="file-name" href="#"></a></td>
+            <td id="file-lastmod"></td>
+            <td id="file-size"></td>
+            <td id="file-mime"></td>
+            <td>
+                <div class="dropdown">
+                    <a class="btn-link dropdown-toggle hover-hand" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Options
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a id="file-newtab" class="dropdown-item hover-hand" href="" target="_blank">Open (New Tab)</a>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+<div class="table-responsive">
+
+    <!--Table-->
+    <table class="table table-striped">
+
+        <!--Table head-->
+        <thead>
+            <tr>
+                <th style="width:3%" class="text-center">
+                    <input type="checkbox" id="check-all-file">
+                </th>
+                <th style="width: 2%;">Type</th>
+                <th style="width: 50%">Name</th>
+                <th style="width: 15%" class="text-nowrap">Last Modified</th>
+                <th style="width: 7%">Size(KB)</th>
+                <th style="width: 7%;">Mime type</th>
+                <th style="width: 7%">Operation</th>
+            </tr>
+        </thead>
+        <!--Table head-->
+
+        <!--Table body-->
+        <tbody id="file-container">
+        </tbody>
+        <!--Table body-->
+
+    </table>
+    <!--Table-->
+
+</div>

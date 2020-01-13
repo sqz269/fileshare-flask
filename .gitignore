@@ -1,6 +1,9 @@
 # Visual studio code workspace file
 *.code-workspace
 
+# Created db file
+*.db
+
 config_local.ini
 
 # Gitpod workspace

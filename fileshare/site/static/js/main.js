@@ -1,64 +1,11 @@
-$(document).ready (initialize);
-
+$(document).ready(initialize);
 
 function initialize()
 {
-    retrieveServerSettings();
+    setCurrentDirectory();
 }
 
-
-function retrieveServerSettings()
-{
-    sendRequest("/api/access-token", null, retrieveServerSettingsCallback, undefined, "OPTION");
-}
-
-var cfgAllowTokenUrlParam = undefined;
-var cfgUserIssuedToken = undefined;
-var cfgTokenIssueLoginRequired = undefined;
-
-function retrieveServerSettingsCallback(status, resp)
-{
-    console.log(resp);
-    resp = JSON.parse(resp);
-
-    cfgAllowTokenUrlParam = resp["token_in_url_param"];
-    cfgUserIssuedToken = resp["cfgUserIssuedToken"];
-    cfgTokenIssueLoginRequired = resp["user_issue_token_require_auth"];
-
-    let linkAccessTokenDisabled = false;
-    let linkShareAccessTokenDisabled = false;
-
-    if (!cfgAllowTokenUrlParam)
-    {
-        $("#file-copy-token").addClass("d-none");
-        linkAccessTokenDisabled = true;
-    }
-
-    if (!cfgUserIssuedToken)
-    {
-        $("#file-share-token").addClass("d-none");
-        linkShareAccessTokenDisabled = true;
-    }
-
-    if (cfgTokenIssueLoginRequired)
-    {
-        if (!isLoggedIn())
-        {
-            $("#file-share-token").addClass("d-none");
-            linkShareAccessTokenDisabled = true;
-        }
-    }
-
-    if (linkShareAccessTokenDisabled && linkAccessTokenDisabled)
-    {
-        $("#file-option-divi").addClass("d-none");
-    }
-
-    setInitialDirectory(); // Prevent Race condition
-}
-
-
-function setInitialDirectory()
+function setCurrentDirectory()
 {
     let currentPath = getUrlVars()["path"];
     if (currentPath)
@@ -71,6 +18,11 @@ function setInitialDirectory()
     }
 }
 
-$("#checkAll").click(function(){
-    $("input[type=checkbox]").prop("checked", $(this).prop("checked"));
+$("#check-all-folder").click(function(){
+    $('input.check-dir:checkbox').not(this).not("#dir-selection").prop('checked', this.checked);
 });
+
+$("#check-all-file").click(function(){
+    $('input.check-file:checkbox').not(this).not("#file-selection").prop('checked', this.checked);
+});
+

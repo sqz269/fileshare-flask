@@ -1,0 +1,30 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <button class="btn btn-primary m-1" data-toggle="modal" data-target="#upload-modal"><div><img class="p-1" src="{{ url_for('site.static', filename='assets/upload.svg') }}"/>Upload</div></button>
+            </li>
+            <li class="nav-item">
+                <button class="btn btn-primary m-1" data-toggle="modal" data-target="#new-folder-modal"><img class="p-1" src="{{ url_for('site.static', filename='assets/new_folder.svg') }}"/>New Folder</button>
+            </li>
+            <li class="nav-item">
+                <button class="btn btn-primary m-1" data-toggle="modal" data-target="#download-modal"><div><img class="p-1" src="{{ url_for('site.static', filename='assets/download.svg') }}"/>Download</div></button>
+            </li>
+            <li class="nav-item">
+                <button class="btn btn-success m-1" href="#"><img class="p-1" src="{{ url_for('site.static', filename='assets/rename.svg') }}"/>Rename</button>
+            </li>
+            <li class="nav-item">
+                <button class="btn btn-success m-1" href="#"><img class="p-1" src="{{ url_for('site.static', filename='assets/move.svg') }}"/>Move</button>
+            </li>
+            <li class="nav-item">
+                <button class="btn btn-danger m-1" onclick="javascript:showDeleteModal();"><img class="p-1" src="{{ url_for('site.static', filename='assets/delete.svg') }}"/>Delete</button>
+            </li>
+        </ul>
+    </div>
+    <form class="form-inline">
+        <button class="btn btn-outline-primary m-1" type="submit">Login</button>
+    </form>
+</nav>
