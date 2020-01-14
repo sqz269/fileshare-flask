@@ -98,3 +98,31 @@
     </div>
 </div>
 <!-- END Download MODAL -->
+
+<!-- START Download MODAL -->
+<div class="modal fade" id="rename-modal" tabindex="-1" role="dialog" aria-labelledby="rename-modal-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rename-modal-label">Rename</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="lead">Renaming <span id="rename-org-name" class="font-weight-bold">PLACE_HOLDER</span>: 
+                </p>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="rename-new-name" placeholder="New Name: ">
+                </div>
+                <hr class="my-3" />
+                <button class="btn btn-button btn-primary btn-block" onclick="javascript:deleteFile();">RENAME</button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END Download MODAL -->
+

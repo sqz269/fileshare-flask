@@ -235,3 +235,8 @@ function deleteFile()
         }
     }
 }
+
+function renameFile()
+{
+    
+}
