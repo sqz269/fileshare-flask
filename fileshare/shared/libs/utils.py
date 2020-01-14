@@ -62,3 +62,42 @@ def make_json_resp_with_status(data: dict, status: int) -> Response:
         status=status,
         mimetype="application/json"
     )
+
+
+def cvt_value_to_type(value, value_org, target_type):
+    string_to_type = {
+        "string"    : str,
+        "str"       : str,
+        "float"     : float,
+        "double"    : float,
+        "integer"   : int,
+        "int"       : int,
+        "bool"      : bool,
+        "boolean"   : bool,
+        "none"      : None,
+        "null"      : None,
+        "undefined" : None
+    }
+
+    bool_value_true  = ["yes", "yea", "ok", "true"]
+    bool_value_false = ["no", "not", "nope", "false"]
+
+    if value_org:
+        return type(value_org)(value)
+
+    elif target_type:
+        target_type = string_to_type[target_type]
+        
+        if isinstance(target_type, bool):
+            if value_org in bool_value_true:
+                return True
+            elif value_org in bool_value_false:
+                return False
+            else:
+                raise ValueError("Invalid boolean value: {}".format(value))
+        
+        elif target_type == None:
+            return None
+
+        else:
+            return target_type(value)

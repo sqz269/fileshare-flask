@@ -16,4 +16,4 @@ db.init_app(app)
 init_db()
 
 if __name__ == "__main__":
-    app.run("localhost", 5000, True)
+    app.run("localhost", 5000)

@@ -21,15 +21,6 @@ function sendRequest(url, data, callBack, contentType = "application/json", meth
 
 
 /**
- * Removes all child element under one element
- * @param {string} jQuery Selector for the element 
- */
-function removeElementContents(elementSelector)
-{
-
-}
-
-/**
  * Set the current clipboard data
  * @param {*} data 
  */
