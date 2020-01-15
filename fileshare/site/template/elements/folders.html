@@ -1,52 +1,42 @@
-<style>
-    .hover-hand {
-        cursor: pointer;
-    }
-</style>
-
 <div class="d-none">
     <table>
-        <tr id="dir-template">
-            <th scope="row" class="text-center"><input id="dir-selection" class="check-dir" type="checkbox" value=""></th>
-            <td class="text-center"><div class="file-type" class="svg-icon"><img id="img-dir" src="{{ url_for('site.static', filename='assets/directory.svg') }}"></div></td>
-            <td><a id="dir-name" href="#"></a></td>
-            <td id="dir-lastmod"></td>
-            <td id="dir-size"></td>
-            <td id="dir-content-file-count"></td>
-            <td id="dir-content-dir-count"></td>
+        <tr id="folder-template">
+            <th></th>
+            <td><a href="" id="t-name"></a></td>
+            <td id="t-last-mod"></td>
+            <td id="t-size"></td>
+            <td id="t-contents-folder"></td>
+            <td id="t-contents-file"></td>
+            <td>
+                <a id="t-op-download" href=""><i class="fa fa-download"></i></a>
+                <a id="t-op-newtab" href="" target="_blank"><i class="fa fa-external-link-alt"></i></a>
+                <a id="t-op-rename" href=""><i class="fa fa-edit"></i></a>
+                <a id="t-op-delete" href=""><i class="fa fa-trash"></i></a>
+                <a id="t-op-move" href=""><i class="fa fa-file-export"></i></a>
+            </td>
         </tr>
     </table>
 </div>
 
-    
-<div class="table-responsive">
-    <table class="table table-striped">
+<div class="item">
+    <table id="table-folders"
+        data-show-columns="true"
+        data-search="true"
+        data-show-toggle="true"
+        data-click-to-select="true"
+        data-resizable="true">
         <thead>
-            <th style="width: 3%;" class="text-center">
-                <input type="checkbox" id="check-all-folder">
-            </th>
-            <th style="width: 2%;">Type</th>
-            <th style="width: 50%;">Name</th>
-            <th style="width: 15%;" class="text-nowrap">Last Modified</th>
-            <th style="width: 7%;">Size(KB)</th>
-            <th style="width: 7%;">File Count</th>
-            <th style="width: 7%;">Dir Count</th>
-        </thead>
-
-        <tbody id="folder-container">
             <tr>
-                <th scope="row" class="text-center">
-                    <img src="{{ url_for('site.static', filename='assets/parent.svg') }}">
-                </th>
-                <th colspan="4">
-                    <a href="javascript:changeDirectoryParent();">Go to parent directory</a>
-                </th>
-                <th class="border-left-1 border-dark" colspan="2">
-                    <div class="d-flex justify-content-between">
-                        <span id="file-count">0</span><span>Files</span> <span id="dir-count">0</span><span>Dirs</span>
-                    </div>
-                </th>
+                <th data-field="state" data-checkbox="true"></th>
+                <th data-field="name" data-sortable="true">Name</th>
+                <th data-field="last-mod" data-sortable="true">Last Modified</th>
+                <th data-field="size" data-sortable="true">Size</th>
+                <th data-field="content-folder" data-sortable="true">Folders</th>
+                <th data-field="content-file" data-sortable="true">File</th>
+                <th data-field="ops" data-sortable="true">Operation</th>
             </tr>
+        </thead>
+        <tbody id="folder-container">
         </tbody>
     </table>
 </div>

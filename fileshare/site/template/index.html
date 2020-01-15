@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.css">
+        <link rel="stylesheet" href="https://unpkg.com/jquery-resizable-columns@0.2.3/dist/jquery.resizableColumns.css">
+
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <link rel="stylesheet" href='{{ url_for("site.static", filename="css/expm.css") }}'>
 
@@ -11,24 +15,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     </head>
     <body>
-        <div class="progress">
-            <div id="upload-progress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">Uploading...</div>
-        </div>
-
-        <div class="d-none" id="clipboard-content">
-            <input id="clipboard-content">
-        </div>
-
-        {% include 'elements/modals.html' %}
-
-        {% include 'elements/nav.html' %}
-        <!-- Work in progress -->
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="#">Home</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Library</li>
-            </ol>
-        </nav>
 
         {% include 'elements/folders.html' %}
         {% include 'elements/files.html' %}
@@ -37,6 +23,9 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
+        <script src="https://unpkg.com/jquery-resizable-columns@0.2.3/dist/jquery.resizableColumns.min.js"></script>
+        <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
+
         <script src="{{ url_for('site.static', filename='plugin/lobibox/js/lobibox.min.js') }}"></script>
 
         <script src="{{ url_for('site.static', filename='js/utils.js') }}"></script>
@@ -44,5 +33,12 @@
         <script src="{{ url_for('site.static', filename='js/template.js') }}"></script>
         <script src="{{ url_for('site.static', filename='js/notify.js') }}"></script>
         <script src="{{ url_for('site.static', filename='js/main.js') }}"></script>
+
+        <script>
+        $(function() {
+            $('#table-files').bootstrapTable();
+            $('#table-folders').bootstrapTable();
+        })
+        </script>        
     </body>
 </html>

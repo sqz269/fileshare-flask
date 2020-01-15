@@ -25,4 +25,3 @@ $("#check-all-folder").click(function(){
 $("#check-all-file").click(function(){
     $('input.check-file:checkbox').not(this).not("#file-selection").prop('checked', this.checked);
 });
-

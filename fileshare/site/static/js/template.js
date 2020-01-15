@@ -2,12 +2,17 @@ function addFileToDisplay(name, path, size, lastmod, mimetype, elementToAppend="
 {
     let $templateElement = $("#file-template").clone(false);
     $templateElement.removeAttr("id");
-    $templateElement.find("#file-selection").attr("value", path).removeAttr("id");
-    $templateElement.find("#file-name").attr("href", `${path}`).html(name).removeAttr("id");
-    $templateElement.find("#file-newtab").attr("href", `${path}`).removeAttr("id");
-    $templateElement.find("#file-lastmod").html(cvtUnixTimeToLocalTime(lastmod)).removeAttr("id");
-    $templateElement.find("#file-size").html(size / 1024).removeAttr("id");
-    $templateElement.find("#file-mime").html(mimetype).removeAttr("id");
+    $templateElement.find("#t-name").attr("href", `${path}`).html(name).removeAttr("id");
+    $templateElement.find("#t-last-mod").html(cvtUnixTimeToLocalTime(lastmod)).removeAttr("id");
+    $templateElement.find("#t-size").html(size / 1024).removeAttr("id");
+    $templateElement.find("#t-mime").html(mimetype).removeAttr("id");
+
+    $templateElement.find("#t-op-download").attr('href', `${path}?mode=download`).removeAttr("id");;
+    $templateElement.find("#t-op-newtab").attr('href', `${path}`).removeAttr("id");;
+    $templateElement.find("#t-op-rename").attr('href', ``).removeAttr("id");
+    $templateElement.find("#t-op-delete").attr('href', ``).removeAttr("id");
+    $templateElement.find("#t-op-move").attr('href', ``).removeAttr("id");
+
     $templateElement.addClass("file-entry");
     $templateElement.appendTo(elementToAppend);
 }
@@ -16,12 +21,19 @@ function addDirectoryToDisplay(name, path, size, lastmod, file_count, dir_count,
 {
     let $templateElement = $("#dir-template").clone(false);
     $templateElement.removeAttr("id");
-    $templateElement.find("#dir-selection").attr("value", path).removeAttr("id");
-    $templateElement.find("#dir-name").attr("href", `javascript:changeDirectory("${path}");`).html(name).removeAttr("id");
-    $templateElement.find("#dir-size").html(size  / 1024).removeAttr("id");
-    $templateElement.find("#dir-lastmod").html(cvtUnixTimeToLocalTime(lastmod)).removeAttr("id");
-    $templateElement.find("#dir-content-file-count").html(file_count).removeAttr("id");
-    $templateElement.find("#dir-content-dir-count").html(dir_count).removeAttr("id");
+    $templateElement.find("#t-name").attr("href", `javascript:changeDirectory("${path}");`).html(name).removeAttr("id");
+    $templateElement.find("#t-last-mod").html(size  / 1024).removeAttr("id");
+    $templateElement.find("#t-size").html(cvtUnixTimeToLocalTime(lastmod)).removeAttr("id");
+    $templateElement.find("#t-contents-folder").html(file_count).removeAttr("id");
+    $templateElement.find("#t-contents-file").html(dir_count).removeAttr("id");
+
+    $templateElement.find("#t-op-download").attr('href', `${path}?mode=download`).removeAttr("id");;
+    $templateElement.find("#t-op-newtab").attr('href', `${path}`).removeAttr("id");;
+    $templateElement.find("#t-op-rename").attr('href', ``).removeAttr("id");
+    $templateElement.find("#t-op-delete").attr('href', ``).removeAttr("id");
+    $templateElement.find("#t-op-move").attr('href', ``).removeAttr("id");
+
+
     $templateElement.addClass("directory-entry");
     $templateElement.appendTo(elementToAppend);
 }
