@@ -29,7 +29,6 @@ function setCurrentDirectory(pushState=true)
 	if (window.history && window.history.pushState) {
 
 		$(window).on("popstate", function() {
-            console.log("Popped State. Current PATH VAR " + getUrlVars()["path"]);
             setCurrentDirectory(false);
 		});
 	}
