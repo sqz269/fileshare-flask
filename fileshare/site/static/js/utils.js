@@ -6,34 +6,35 @@
  * @param {string} contentType the Conetent-Type header value (default application/json)
  * @param {string} method the method of the requestion (POST, DELETE etc.) (default POST)
  */
-function sendRequest(url, data, callBack, contentType = "application/json", method = "POST")
+function sendRequest(url, data, callBack, callbackArgs={}, contentType = "application/json", method = "POST")
 {
     let xhr = new XMLHttpRequest();
     xhr.open(method, url, true);
     xhr.setRequestHeader("Content-Type", contentType);
     xhr.onreadystatechange = function() {
         if (xhr.readyState === XMLHttpRequest.DONE) {
-            callBack(xhr.status, xhr.responseText);
+            if (Object.entries(callbackArgs).length !== 0)
+            {            
+                callBack(xhr.status, xhr.responseText, callbackArgs);
+            }
+            else
+            {
+                callBack(xhr.status, xhr.responseText);
+            }
         }
     };
     xhr.send(data);
 }
 
+
+/**
+ * Set the current clipboard data
+ * @param {*} data 
+ */
 function setClipBoardData(data)
 {
     console.log(`Clipboard data: ${data}`);
     
-}
-
-function isLoggedIn() // TODO
-{
-
-}
-
-
-function getTokenForPath()
-{
-
 }
 
 function getOwnTokenForPath()

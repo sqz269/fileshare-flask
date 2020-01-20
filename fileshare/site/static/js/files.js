@@ -5,159 +5,60 @@
  */
 function setURLCurrentDirectory(cPath)
 {
-    let token = getUrlVars()["token"];
-    if (token)
-    {
-        history.pushState({path: cPath}, "", `?path=${cPath}&token=${token}`);
-    }
-    else
-    {
-        history.pushState({path: cPath}, "", `?path=${cPath}`);
-    }
+    history.pushState({path: cPath}, "", `?path=${cPath}`);
 }
 
-/**
- * Processes response from a change directory response and sets the files/dir to display
- * which the reposes looks like
- *  { <directory>:
-        {<fileName>: {
-            "isDir": <isFileDir {bool}>,
-            "path": <fileUrlPath {str}>,
-            "size": <fileSize> {int},
-            "lastmod": <fileLastModDate {unix timestamp}>
-        }}
-    }
- * 
- * @param {number} status The completed XHR status
- * @param {string} resp the stringified JSON Object that contains the file information
- */
-function processFileResponse(status, resp)
+function setUploadFileLabel()
 {
-    if (status === 200)
+    let fileInputElement = document.getElementById("file-upload");  // get file input element
+    if ("files" in fileInputElement)   // if there are files selected
     {
-        resp = JSON.parse(resp);
-        removeAllDisplayedFiles();
-        let path = Object.keys(resp)[0];
-        setURLCurrentDirectory(path);
-
-        let totalDirCount = 0;
-        let totalFileCount = 0;
-
-        for (let dir in resp[path])  // Loop though all files and check if they are a directory and show them first
+        if (!fileInputElement.files.length) // if no files are selected
         {
-            if (resp[path][dir].isDir)
+            $("#file-upload-label").html("Choose file");
+        }
+        else  // if files are selected
+        {
+            let totalFiles = 0;
+            for (let i = 0; i < fileInputElement.files.length; i++)  // Count files in total
             {
-                fileContainerAddItem(dir, resp[path][dir].path, "N/A", cvtUnixTimeToLocalTime(resp[path][dir].lastmod), true);
-                totalDirCount++;
+                let file = fileInputElement.files[i]; 
+                totalFiles += 1;
+            }
+            if (totalFiles > 1)  // if there is more than one file selected
+            { 
+                let firstFileName = fileInputElement.files[0].name;
+                $("#file-upload-label").html(firstFileName + " and " + (totalFiles - 1) + " More");
+            }
+            else  // if only one files are selected
+            {
+                let firstFileName = fileInputElement.files[0].name;
+                $("#file-upload-label").html(firstFileName);
             }
         }
-
-        for (let file in resp[path])  // then show all the remaining files
-        {
-            if (!resp[path][file].isDir)
-            {
-                fileContainerAddItem(file, resp[path][file].path, Math.round((resp[path][file].size / 1024)), cvtUnixTimeToLocalTime(resp[path][file].lastmod), false);
-                totalFileCount++;
-            }
-        }
-
-        setTotalDirAndFile(totalFileCount, totalDirCount);
-    }
-    else
-    {
-        resp = JSON.parse(resp);
-        notifyUserError("Error", `Change directory failed with code ${resp["status"]}. | Details: ${resp["details"]}`);
     }
 }
-
-/**
- * Change current directory, a wrapper for sendRequest
- * Actually does nothing other than do a sendRequest function
- * 
- * @param {string} dst The destination directory
- */
-function changeDirectory(dst)
-{
-    let token = getUrlVars()["token"];
-    if (token)
-    {
-        sendRequest(`/api/files?path=${dst}&token=${token}`, null, processFileResponse);
-    }
-    else
-    {
-        sendRequest(`/api/files?path=${dst}`, null, processFileResponse);
-    }
-}
-
-/**
- * Move to parent directory, similar to "cd .." command 
- */
-function changeDirectoryParent()
-{
-    let currentPath = getUrlVars()["path"];
-    if (currentPath)
-    {
-        let currentPathSplit = currentPath.split("/"); // Split the path to arrays
-        let newPath = currentPathSplit.slice(0, currentPathSplit.length - 1).join("/"); // Join every segment of the path except for the last part
-        if (!newPath)  // If the joined path is empty that means the parent path must be root
-        {
-            newPath = "/";
-        }
-        changeDirectory(newPath);
-    }
-    else
-    {
-        changeDirectory("/");
-    }
-}
-
 
 function newFolder()
 {
-    let newFolderName =  $("#new-folder-name").val();
-    let currentPath = getUrlVars()["path"];
-    let newFolderPath = null;
-    if (currentPath.charAt(currentPath.length - 1) === "/")
-    {
-        newFolderPath = `${currentPath}${newFolderName}`;
-    }
-    else
-    {
-        newFolderPath = `${currentPath}/${newFolderName}`;
-    }
+    let name = $("#new-folder-name").val();
+    let path = getUrlVars()["path"]; // path of Parent folder of the new folder
+    sendRequest(`/api/folder?path=${path}&name=${name}`, null, newFolderCallBack, null, "PUT")
+    $("#new-folder-modal").modal("hide");
 
-    // console.log(`New folder url path: ${newFolderPath}`);
-    sendRequest(`/api/folders?path=${newFolderPath}`, null, newFolderCallback, null, "PUT");
-}
-
-var lastNewDirPath = null;  // To lazy to actually think a better what to pass in lastNewDirPath into newFolderEnterDir
-
-function newFolderCallback(status, resp)
-{
-    if (status === 200)
+    function newFolderCallBack(status, resp)
     {
         resp = JSON.parse(resp);
-        let filePath = resp["path"];
-        lastNewDirPath = filePath;
-
-        let filePathSplitted = filePath.split("/");
-        let fileName = filePathSplitted[filePathSplitted.length - 1];
-
-        fileContainerAddItem(fileName, filePath, "N/A", resp["lastmod"], true);
-        notifyUserSuccessClickAction("Success", "Directory has been created. Click move to the directory", newFolderEnterDir);
-    }
-    else
-    {
-        resp = JSON.parse(resp);
-        notifyUserError("Error", `New Folder failed with code ${resp["status"]}. | Details: ${resp["details"]}`);
+        if (status === 200)
+        {
+            notifyUserSuccess("Success", "Folder has been created");  
+        }
+        else
+        {
+            notifyUserError("Error", `Failed to create a new folder [${resp["status"]}]. Details: ${resp["details"]}`);
+        }
     }
 }
-
-function newFolderEnterDir()
-{
-    changeDirectory(lastNewDirPath);
-}
-
 
 function uploadFile()
 {
@@ -189,7 +90,7 @@ function uploadFile()
         },
 
         type: "PUT",
-        url: `/api/files?path=${dst}`,
+        url: `/api/file?path=${dst}`,
         data: formData,
         processData: false,
         contentType: false,
@@ -218,13 +119,60 @@ function uploadFile()
     });
 }
 
-
-function generateAccessTokenForPath(path)  // TODO
+/**
+ * Goes up to previous directory. Similar to ..
+ */
+function changeDirectoryParent()
 {
-    sendRequest(`/api/access-token?path=${path}`, null, null);
+    let currentPath = getUrlVars()["path"];
+    if (currentPath !== "/")
+    {
+        let currentPathSplit = currentPath.split("/");
+        let parentPath = currentPathSplit.slice(0, currentPathSplit.length - 1).join("/"); // Join every segment of the path except for the last part
+
+        if (!parentPath){parentPath = "/";}
+        changeDirectory(parentPath);
+    }
 }
 
-function refresh()
+/**
+ * lists a directory
+ * 
+ * @param {string} dst the path of the directory to list
+ * @param {boolean} pushHistory will the changed url be pushed to history (enabling back button to access last visited directory)
+ */
+function changeDirectory(dst, pushHistory=true)
 {
-    changeDirectory(getUrlVars()["path"]);
+    sendRequest(`/api/file?path=${dst}&type=table`, null, changeDirectoryCallback, {"pushHistory": pushHistory});
+
+    function changeDirectoryCallback(status, resp, params)
+    {
+        let response = JSON.parse(resp);
+        if (status === 200)
+        {
+            for (let key in response)
+            {
+                if (response.hasOwnProperty(key))
+                {
+                    if (params["pushHistory"])
+                    {
+                        setURLCurrentDirectory(key);  // Key is the path of the changed directory, or parent path of current directory?
+                    }
+                    let files = response[key]["files"];
+                    let directories = response[key]["dirs"];
+                    $("#table-folders").bootstrapTable("load", directories);
+                    $("#table-files").bootstrapTable("load", files);
+                }
+            }
+        }
+        else
+        {
+            notifyUserError("Error", `Failed to change directory [${response["status"]}]. Reason: ${response["details"]}`);
+        }
+    }
+}
+
+function renameFile()
+{
+    
 }

@@ -1,7 +1,12 @@
 # Visual studio code workspace file
 *.code-workspace
 
-config_local.ini
+# Created db file
+*.db
+
+db_info.json
+
+config_local.py
 
 # Gitpod workspace
 .theia

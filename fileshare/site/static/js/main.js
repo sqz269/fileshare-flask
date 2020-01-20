@@ -1,76 +1,35 @@
-$(document).ready (initialize);
-
+$(document).ready(initialize);
 
 function initialize()
 {
-    retrieveServerSettings();
+    setCurrentDirectory();
 }
 
-
-function retrieveServerSettings()
+function processBreadCrumb()
 {
-    sendRequest("/api/access-token", null, retrieveServerSettingsCallback, undefined, "OPTION");
+    let currentPath = getUrlVars()["path"];
+
 }
 
-var cfgAllowTokenUrlParam = undefined;
-var cfgUserIssuedToken = undefined;
-var cfgTokenIssueLoginRequired = undefined;
-
-function retrieveServerSettingsCallback(status, resp)
-{
-    console.log(resp);
-    resp = JSON.parse(resp);
-
-    cfgAllowTokenUrlParam = resp["token_in_url_param"];
-    cfgUserIssuedToken = resp["cfgUserIssuedToken"];
-    cfgTokenIssueLoginRequired = resp["user_issue_token_require_auth"];
-
-    let linkAccessTokenDisabled = false;
-    let linkShareAccessTokenDisabled = false;
-
-    if (!cfgAllowTokenUrlParam)
-    {
-        $("#file-copy-token").addClass("d-none");
-        linkAccessTokenDisabled = true;
-    }
-
-    if (!cfgUserIssuedToken)
-    {
-        $("#file-share-token").addClass("d-none");
-        linkShareAccessTokenDisabled = true;
-    }
-
-    if (cfgTokenIssueLoginRequired)
-    {
-        if (!isLoggedIn())
-        {
-            $("#file-share-token").addClass("d-none");
-            linkShareAccessTokenDisabled = true;
-        }
-    }
-
-    if (linkShareAccessTokenDisabled && linkAccessTokenDisabled)
-    {
-        $("#file-option-divi").addClass("d-none");
-    }
-
-    setInitialDirectory(); // Prevent Race condition
-}
-
-
-function setInitialDirectory()
+function setCurrentDirectory(pushState=true)
 {
     let currentPath = getUrlVars()["path"];
     if (currentPath)
     {
-        changeDirectory(currentPath);
+        changeDirectory(currentPath, pushState);
     }
     else
     {
-        changeDirectory("/");
+        changeDirectory("/", pushState);
     }
 }
 
-$("#checkAll").click(function(){
-    $("input[type=checkbox]").prop("checked", $(this).prop("checked"));
-});
+(function() {
+
+	if (window.history && window.history.pushState) {
+
+		$(window).on("popstate", function() {
+            setCurrentDirectory(false);
+		});
+	}
+})();
