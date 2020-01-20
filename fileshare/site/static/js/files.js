@@ -137,9 +137,10 @@ function changeDirectoryParent()
 }
 
 /**
+ * lists a directory
  * 
- * @param {string} dst 
- * @param {boolean} pushHistory 
+ * @param {string} dst the path of the directory to list
+ * @param {boolean} pushHistory will the changed url be pushed to history (enabling back button to access last visited directory)
  */
 function changeDirectory(dst, pushHistory=true)
 {
@@ -154,7 +155,7 @@ function changeDirectory(dst, pushHistory=true)
             {
                 if (params["pushHistory"])
                 {
-                    setURLCurrentDirectory(key);  // Key is the path of the changed directory
+                    setURLCurrentDirectory(key);  // Key is the path of the changed directory, or parent path of current directory?
                 }
                 let files = response[key]["files"];
                 let directories = response[key]["dirs"];
