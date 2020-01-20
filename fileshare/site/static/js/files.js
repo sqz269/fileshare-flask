@@ -146,55 +146,20 @@ function changeDirectoryParent()
 
 function changeDirectory(dst)
 {
-    sendRequest(`/api/file?path=${dst}`, null, changeDirectoryCallback)
+    sendRequest(`/api/file?path=${dst}&type=table`, null, changeDirectoryCallback);
 
-    
-    function changeDirectoryCallback(status, data)
+    function changeDirectoryCallback(status, resp)
     {
-        response_data = JSON.parse(data)
-
-        if (status === 200)
+        let data = resp;
+        console.log("Breakpoint");
+        let response = JSON.parse(data);
+        for (let key in response)
         {
-            let total_files = 0;
-            let total_folders = 0;
-
-            // Remove all currently displayed files & folders
-            $(".directory-entry").remove();
-            $(".file-entry").remove();
-
-            let directory_rel_path = Object.keys(response_data)[0];
-            let directory_contents = response_data[directory_rel_path]
-            setURLCurrentDirectory(directory_rel_path);
-
-            // Items is the content's name, and the directory_content[items] 
-            // accesses the file/folder's data
-            for (let items of Object.keys(directory_contents))
-            {
-                let item_data = directory_contents[items]
-                if (item_data.isDir)
-                {
-                    addDirectoryToDisplay(item_data.name, item_data.path, 
-                                        item_data.size, item_data.last_mod, 
-                                        item_data.file_count, item_data.dir_count);
-                    total_folders++;
-                }
-                else
-                {
-                    addFileToDisplay(item_data.name, item_data.path,
-                                    item_data.size, item_data.last_mod,
-                                    item_data.mimetype);
-                    total_files++;
-                }
-            }
-
-            $("#file-count").html(total_files);
-            $("#dir-count").html(total_folders);
+            let files = response[key]["files"];
+            let directories = response[key]["dirs"];
+            $("#table-folders").bootstrapTable("load", directories);
+            $("#table-files").bootstrapTable("load", files);
         }
-        else
-        {
-            notifyUserError("Error", `Failed to change directory [${response_data["status"]}]. Details: ${response_data["details"]}`)
-        }
-        return;
     }
 }
 
@@ -209,6 +174,7 @@ function showDeleteModal()
 
     $("#delete-modal").modal("show");
 }
+
 
 
 function deleteFile()

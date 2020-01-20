@@ -16,21 +16,23 @@
     </head>
     <body>
 
+        {% include 'elements/nav.html' %}
+
         {% include 'elements/folders.html' %}
         {% include 'elements/files.html' %}
 
+        {% include 'elements/modals.html' %}
+        
         <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
-        <script src="https://unpkg.com/jquery-resizable-columns@0.2.3/dist/jquery.resizableColumns.min.js"></script>
         <script src="https://unpkg.com/bootstrap-table@1.15.5/dist/bootstrap-table.min.js"></script>
 
         <script src="{{ url_for('site.static', filename='plugin/lobibox/js/lobibox.min.js') }}"></script>
 
         <script src="{{ url_for('site.static', filename='js/utils.js') }}"></script>
         <script src="{{ url_for('site.static', filename='js/files.js') }}"></script>
-        <script src="{{ url_for('site.static', filename='js/template.js') }}"></script>
         <script src="{{ url_for('site.static', filename='js/notify.js') }}"></script>
         <script src="{{ url_for('site.static', filename='js/main.js') }}"></script>
 

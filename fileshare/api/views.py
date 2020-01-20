@@ -39,13 +39,10 @@ Resource Related Errors
 102 - Invalid/Illegal Path has been provided
 103 - Path provided does not exist
 """
-import time
 @api.route("/file", methods=["POST"])
 @api.route("/folder", methods=["POST"])
 def list_directory():
-    ts = time.time()
     path = utils.get_url_param(request.args, "path")
-
     target_type = utils.get_url_param(request.args, "type")
 
     if os.name == "nt":
@@ -56,7 +53,8 @@ def list_directory():
     if not directory:
         return utils.make_status_resp_ex(103)
 
-    return utils.make_json_resp_with_status(api_utils.db_directory_to_api_resp(directory), 200)
+    data = api_utils.db_list_files(directory, True) if target_type == "table" else api_utils.db_list_files(directory)
+    return utils.make_json_resp_with_status(data, 200)
 
 
 @api.route("/file", methods=["PUT"])

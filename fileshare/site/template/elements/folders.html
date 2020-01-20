@@ -23,17 +23,16 @@
         data-show-columns="true"
         data-search="true"
         data-show-toggle="true"
-        data-click-to-select="true"
-        data-resizable="true">
+        data-click-to-select="true">
         <thead>
             <tr>
                 <th data-field="state" data-checkbox="true"></th>
-                <th data-field="name" data-sortable="true">Name</th>
-                <th data-field="last-mod" data-sortable="true">Last Modified</th>
-                <th data-field="size" data-sortable="true">Size</th>
-                <th data-field="content-folder" data-sortable="true">Folders</th>
-                <th data-field="content-file" data-sortable="true">File</th>
-                <th data-field="ops" data-sortable="true">Operation</th>
+                <th data-field="name" data-width=40 data-width-unit="%" data-sortable="true">Name</th>
+                <th data-field="last_mod" data-width=15 data-width-unit="%" data-sortable="true">Last Modified</th>
+                <th data-field="size" data-width=15 data-width-unit="%" data-sortable="true">Size</th>
+                <th data-field="dir_count" data-width=8 data-width-unit="%" data-sortable="true">Folders</th>
+                <th data-field="file_count" data-width=8 data-width-unit="%" data-sortable="true">File</th>
+                <th data-field="ops" data-sortable="false">Operation</th>
             </tr>
         </thead>
         <tbody id="folder-container">

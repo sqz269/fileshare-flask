@@ -10,46 +10,62 @@ import shutil
 
 from typing import Union
 
-def db_directory_to_api_resp(record: Directory) -> dict:
-    content = {}
 
-    if record.content_dir: 
-        # If they contains directories.
-        # without this check an empty string (no contents that is a folder) can exist and split will return [] which makes the query can't find anything
-        # which it just means the directory doesn't contain any folders
+def name_to_html_link(name, path, is_file):
+    TEMPLATE_DIRECTORY = f"""<a href="javascript:changeDirectory('{path}')">{name}</a>"""
+    TEMPLATE_FILE = f"""<a href="{path}">{name}</a>"""
+    if is_file:
+        return TEMPLATE_FILE
+    return TEMPLATE_DIRECTORY
+
+
+def db_list_files(record: Directory, for_bootstrap_tables=False) -> dict:
+    
+    content = {"dirs": [], "files": []}
+    if record.content_dir:
         for folder in record.content_dir.split(","):
-            dir_rel_path = os.path.join(record.rel_path, folder)
-            dir_info = CommonQuery.query_dir_by_relative_path(dir_rel_path)
-            content.update({
-                dir_info.name: {
-                    "name"      : dir_info.name,
-                    "isDir"     : True,
+            dir_rel_path    = os.path.join(record.rel_path, folder)
+            dir_info        = CommonQuery.query_dir_by_relative_path(dir_rel_path)
+            
+            if for_bootstrap_tables:
+                name = name_to_html_link(dir_info.name, 
+                                        dir_info.rel_path.replace("\\", "/"), 
+                                        False)
+            else:
+                name = dir_info.name
+
+            content["dirs"].append({
+                    "name"      : name,
                     "path"      : dir_info.rel_path.replace("\\", "/"),
                     "size"      : dir_info.size,
                     "last_mod"  : dir_info.last_mod,
                     "dir_count" : dir_info.dir_count,
                     "file_count": dir_info.file_count
-                }
             })
 
     if record.content_file:
         for file in record.content_file.split(","):
             file_rel_path = os.path.join(record.rel_path, file)
             file_info = CommonQuery.query_file_by_relative_path(file_rel_path)
-            content.update({
-                file_info.name: {
-                    "name"      : file_info.name,
-                    "isDir"     : False,
+
+            if for_bootstrap_tables:
+                name = name_to_html_link(file_info.name, 
+                                        file_info.rel_path.replace("\\", "/"), 
+                                        True)
+            else:
+                name = file_info.name
+
+
+            content["files"].append({
+                    "name"      : name,
                     "path"      : file_info.rel_path.replace("\\", "/"),
                     "size"      : file_info.size,
-                    "last_mod"   : file_info.last_mod,
+                    "last_mod"  : file_info.last_mod,
                     "mimetype"  : file_info.mimetype
-                }
             })
 
-    parent = record.rel_path.replace("\\", "/")
-
-    return {parent: content}
+    parent_path = record.rel_path.replace("\\", "/")
+    return {parent_path: content}
 
 
 def delete_file_or_directory_from_filesystem(entry: Union[Directory, File]):
