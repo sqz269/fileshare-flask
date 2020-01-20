@@ -4,10 +4,6 @@ from fileshare.shared.database.Directory import Directory
 from fileshare.shared.database.File import File
 from fileshare.shared.database.User import User
 
-from fileshare.shared.libs.file_index import abs_path_to_rel_path
-
-from fileshare import app
-
 import os
 import magic
 
@@ -26,10 +22,10 @@ class CommonQuery:
     @staticmethod
     def delete_file_by_relative_path(path) -> File:
         """Deletes a file record from the database
-        
+
         Arguments:
             path {str} -- the relative path of the file that is going to be deleted
-        
+
         Returns:
             File -- the database entry for the deleted file
         """
@@ -38,7 +34,7 @@ class CommonQuery:
         db.session.commit()
         return file
 
-    
+
     @staticmethod
     def query_file_by_name(file_name) -> list:
         return File.query.filter(name=file_name).all()
@@ -51,10 +47,10 @@ class CommonQuery:
 
     def delete_dir_by_relative_path(path) -> Directory:
         """Deletes a directory record from the database
-        
+
         Arguments:
             path {str} -- the relative path of the folder that is going to be deleted
-        
+
         Returns:
             Directory -- the database entry for the deleted folder
         """
@@ -91,14 +87,14 @@ class CommonQuery:
     @staticmethod
     def insert_new_file_record(parent_folder: Directory, name, commit=True) -> File:
         """Inserts a new file record into the file database
-        
+
         A file must be already exist on the file system in order for this function to work
-            This function is intended to be used with the upload view. 
-            The uploaded file will be first saved on to the computer, 
+            This function is intended to be used with the upload view.
+            The uploaded file will be first saved on to the computer,
             then it's parent dir's relative path (Upload destination)
             can be pass into this function to add the file uploaded to
             databases for display.
-        
+
         Arguments:
             rel_path {str} -- the relative path (of parent directory) will points to the file
             name {str} -- name of the file

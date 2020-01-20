@@ -19,11 +19,11 @@ class Config:
 
     DELETE_MODE = 2
     # delete mode represents how is a file going to be deleted
-    # 1 represents both the database record and the actual file is going to be removed 
+    # 1 represents both the database record and the actual file is going to be removed
     # 2 Represents the file/folder's record is only going to be deleted from the database, not the filesystem
 
     ALLOW_ACCESS_TOKEN_AS_URL_PARAM = False
-    #  bool, True if user can provide their AccessTokens (JWT) as a url paramater, useful for temporary access sharing 
+    #  bool, True if user can provide their AccessTokens (JWT) as a url paramater, useful for temporary access sharing
 
     ALLOW_USER_ISSUE_TOKEN = False
     #  bool, True if a user that is authorized can issue a AccessToken for sharing files/dir to other non authorized users

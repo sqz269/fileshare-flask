@@ -1,5 +1,3 @@
-from fileshare.shared.database.database import db
-
 from fileshare import app
 
 from flask import Blueprint, request
@@ -20,7 +18,7 @@ def get_all_cfg():
 def get_specific_cfg(key):
     try:
         return utils.make_json_resp_with_status({"status": 0, "details": "completed", "results": [app.config[key]]}, 200)
-    except:
+    except KeyError:
         return utils.make_json_resp_with_status({"status": 50, "details": f"no configurations is associated with key: {key}. note: most configuration keys are all caps letters", "results": []}, 400)
 
 

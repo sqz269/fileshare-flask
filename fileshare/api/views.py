@@ -1,14 +1,11 @@
 from flask import Blueprint, request
 
 from fileshare.shared.database.common_query import CommonQuery
-from fileshare.shared.database.Directory import Directory
-from fileshare.shared.database.File import File
 
 from fileshare.api.libs.status_to_msg import STATUS_TO_MESSAGE, STATUS_TO_HTTP_CODE
 from fileshare.api.libs import api_utils
 
 from fileshare.shared.libs import utils
-from fileshare.shared.libs import paths
 
 from fileshare.shared.database.database import db
 
@@ -47,7 +44,7 @@ def list_directory():
 
     if os.name == "nt":
         path = path.replace("/", "\\")
-    
+
     directory = CommonQuery.query_dir_by_relative_path(path)
 
     if not directory:
@@ -150,7 +147,7 @@ def folder():
 
     try:
         db.session.commit()
-    except exc.IntegrityError as err:
+    except exc.IntegrityError:
         return utils.make_status_resp_ex(100)
 
     return utils.make_status_resp_ex(0)

@@ -1,12 +1,10 @@
-from flask import Blueprint, render_template, request, send_file, abort
+from flask import Blueprint, render_template, request, send_file
 from flask import current_app as app
 
-from fileshare.shared.libs.paths import make_abs_path_from_url
 from fileshare.shared.libs.utils import get_url_param
 
 from fileshare.shared.database.common_query import CommonQuery
 
-import time
 import os
 
 import magic

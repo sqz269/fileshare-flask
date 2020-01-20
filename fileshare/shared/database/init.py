@@ -1,7 +1,7 @@
 from fileshare.shared.database.database import db
 from fileshare.shared.database.Directory import Directory
 from fileshare.shared.database.File import File
-from fileshare.shared.database.User import User
+# from fileshare.shared.database.User import User
 from fileshare import app
 
 from fileshare.shared.libs.file_index import index_file
@@ -11,7 +11,7 @@ import json
 
 def unpack_dir_info_to_db_entry(data: dict) -> Directory:
     """Unpacks a file index result about a directory to a database entry
-    
+
     Arguments:
         data {dict} -- The value of a directory record that is returned by index_file
 
@@ -35,10 +35,10 @@ def unpack_dir_info_to_db_entry(data: dict) -> Directory:
 
 def unpack_file_info_to_db_entry(data: dict) -> File:
     """Unpacks a file index result about a file to a database entry
-    
+
     Arguments:
         data {[type]} -- [description]
-    
+
     Returns:
         File -- The database entry that represents the file
     """
@@ -56,13 +56,13 @@ def unpack_file_info_to_db_entry(data: dict) -> File:
 def is_db_initalized(info_path: str) -> tuple:
     """Checks if the file database is initialized
     it helps to determin if we need to call prepare_db
-    
+
     Arguments:
         info_path {str} -- the path like string that points the the infomation written by write_info function
 
     Return:
         tuple - with 2 element. first element (True/False) represents if the shareing paths are changed
-                2nd element is a tuple contains 2 element, 
+                2nd element is a tuple contains 2 element,
                     first element in the tuple is a list of path shared that is missing since the last file index
                     second element in the tuple is a list of path shared that is added since the last file index
     """
@@ -76,14 +76,14 @@ def is_db_initalized(info_path: str) -> tuple:
                 if path not in app.config["SHARED_DIRECTORY"]:
                     paths_changed = True
                     missing_paths.append(path)
-            
+
             for path in app.config["SHARED_DIRECTORY"]:
                 if path not in info_json["paths_recorded"]:
                     paths_changed = True
                     extra_paths.append[path]
 
             return (paths_changed, (missing_paths, extra_paths))
-    except:
+    except (FileNotFoundError, PermissionError):
         return (True, (app.config["SHARED_DIRECTORY"], []))
 
 
@@ -117,11 +117,11 @@ def init_db():
         index.append(index_file(path))
 
     for indexed_files in index:
-        for key, directory_data in indexed_files.items():
+        for directory_data in indexed_files.values():
             entry = unpack_dir_info_to_db_entry(directory_data)
             db.session.add(entry)
             records_dir += 1
-            for k, files_data in directory_data["file_content"].items():
+            for files_data in directory_data["file_content"].values():
                 entry = unpack_file_info_to_db_entry(files_data)
                 db.session.add(entry)
                 records_file += 1

@@ -5,7 +5,6 @@
  */
 function setURLCurrentDirectory(cPath)
 {
-    console.log("Pushed History");
     history.pushState({path: cPath}, "", `?path=${cPath}`);
 }
 
@@ -28,12 +27,12 @@ function setUploadFileLabel()
             }
             if (totalFiles > 1)  // if there is more than one file selected
             { 
-                let firstFileName = fileInputElement.files[0].name
+                let firstFileName = fileInputElement.files[0].name;
                 $("#file-upload-label").html(firstFileName + " and " + (totalFiles - 1) + " More");
             }
             else  // if only one files are selected
             {
-                let firstFileName = fileInputElement.files[0].name
+                let firstFileName = fileInputElement.files[0].name;
                 $("#file-upload-label").html(firstFileName);
             }
         }
@@ -126,7 +125,7 @@ function uploadFile()
 function changeDirectoryParent()
 {
     let currentPath = getUrlVars()["path"];
-    if (currentPath != "/")
+    if (currentPath !== "/")
     {
         let currentPathSplit = currentPath.split("/");
         let parentPath = currentPathSplit.slice(0, currentPathSplit.length - 1).join("/"); // Join every segment of the path except for the last part
@@ -153,14 +152,17 @@ function changeDirectory(dst, pushHistory=true)
         {
             for (let key in response)
             {
-                if (params["pushHistory"])
+                if (response.hasOwnProperty(key))
                 {
-                    setURLCurrentDirectory(key);  // Key is the path of the changed directory, or parent path of current directory?
+                    if (params["pushHistory"])
+                    {
+                        setURLCurrentDirectory(key);  // Key is the path of the changed directory, or parent path of current directory?
+                    }
+                    let files = response[key]["files"];
+                    let directories = response[key]["dirs"];
+                    $("#table-folders").bootstrapTable("load", directories);
+                    $("#table-files").bootstrapTable("load", files);
                 }
-                let files = response[key]["files"];
-                let directories = response[key]["dirs"];
-                $("#table-folders").bootstrapTable("load", directories);
-                $("#table-files").bootstrapTable("load", files);
             }
         }
         else
