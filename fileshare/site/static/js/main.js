@@ -5,23 +5,32 @@ function initialize()
     setCurrentDirectory();
 }
 
-function setCurrentDirectory()
+function processBreadCrumb()
+{
+    let currentPath = getUrlVars()["path"];
+
+}
+
+function setCurrentDirectory(pushState=true)
 {
     let currentPath = getUrlVars()["path"];
     if (currentPath)
     {
-        changeDirectory(currentPath);
+        changeDirectory(currentPath, pushState);
     }
     else
     {
-        changeDirectory("/");
+        changeDirectory("/", pushState);
     }
 }
 
-$("#check-all-folder").click(function(){
-    $('input.check-dir:checkbox').not(this).not("#dir-selection").prop('checked', this.checked);
-});
+(function() {
 
-$("#check-all-file").click(function(){
-    $('input.check-file:checkbox').not(this).not("#file-selection").prop('checked', this.checked);
-});
+	if (window.history && window.history.pushState) {
+
+		$(window).on('popstate', function() {
+            console.log("Popped State. Current PATH VAR " + getUrlVars()["path"]);
+            setCurrentDirectory(false);
+		});
+	}
+})();

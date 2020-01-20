@@ -5,15 +5,8 @@
  */
 function setURLCurrentDirectory(cPath)
 {
-    let token = getUrlVars()["token"];
-    if (token)
-    {
-        history.pushState({path: cPath}, "", `?path=${cPath}&token=${token}`);
-    }
-    else
-    {
-        history.pushState({path: cPath}, "", `?path=${cPath}`);
-    }
+    console.log("Pushed History");
+    history.pushState({path: cPath}, "", `?path=${cPath}`);
 }
 
 function setUploadFileLabel()
@@ -143,62 +136,35 @@ function changeDirectoryParent()
     }
 }
 
-
-function changeDirectory(dst)
+/**
+ * 
+ * @param {string} dst 
+ * @param {boolean} pushHistory 
+ */
+function changeDirectory(dst, pushHistory=true)
 {
-    sendRequest(`/api/file?path=${dst}&type=table`, null, changeDirectoryCallback);
+    sendRequest(`/api/file?path=${dst}&type=table`, null, changeDirectoryCallback, {"pushHistory": pushHistory});
 
-    function changeDirectoryCallback(status, resp)
+    function changeDirectoryCallback(status, resp, params)
     {
-        let data = resp;
-        console.log("Breakpoint");
-        let response = JSON.parse(data);
-        for (let key in response)
-        {
-            setURLCurrentDirectory(key);  // Key is the path of the changed directory
-            let files = response[key]["files"];
-            let directories = response[key]["dirs"];
-            $("#table-folders").bootstrapTable("load", directories);
-            $("#table-files").bootstrapTable("load", files);
-        }
-    }
-}
-
-
-function showDeleteModal()
-{
-    let delete_folder = $("input.check-dir:checkbox:checked").map(function() {return this.value;}).get();
-    let delete_file = $("input.check-file:checkbox:checked").map(function() {return this.value;}).get();
-
-    $("#file-delete-total").html(delete_file.length);
-    $("#folder-delete-total").html(delete_folder.length);
-
-    $("#delete-modal").modal("show");
-}
-
-
-
-function deleteFile()
-{
-    let delete_folder = $("input.check-dir:checkbox:checked").map(function() {return this.value;}).get();
-    let delete_file = $("input.check-file:checkbox:checked").map(function() {return this.value;}).get();
-
-    let delete_json = {"folder": delete_folder, "file": delete_file};
-
-    sendRequest("/api/folder", JSON.stringify(delete_json), deleteFileCallBack, "application/json", "DELETE");
-
-    $("#delete-modal").modal("hide");
-
-    function deleteFileCallBack(status, resp)
-    {
-        resp = JSON.parse(resp);   
+        let response = JSON.parse(resp);
         if (status === 200)
         {
-            notifyUserSuccess("Success", resp["details"]);
+            for (let key in response)
+            {
+                if (params["pushHistory"])
+                {
+                    setURLCurrentDirectory(key);  // Key is the path of the changed directory
+                }
+                let files = response[key]["files"];
+                let directories = response[key]["dirs"];
+                $("#table-folders").bootstrapTable("load", directories);
+                $("#table-files").bootstrapTable("load", files);
+            }
         }
         else
         {
-            notifyUserError("Error", resp["details"])
+            notifyUserError("Error", `Failed to change directory [${response["status"]}]. Reason: ${response["details"]}`);
         }
     }
 }
