@@ -155,6 +155,7 @@ function changeDirectory(dst)
         let response = JSON.parse(data);
         for (let key in response)
         {
+            setURLCurrentDirectory(key);  // Key is the path of the changed directory
             let files = response[key]["files"];
             let directories = response[key]["dirs"];
             $("#table-folders").bootstrapTable("load", directories);
