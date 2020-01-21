@@ -80,7 +80,7 @@ def is_db_initalized(info_path: str) -> tuple:
             for path in app.config["SHARED_DIRECTORY"]:
                 if path not in info_json["paths_recorded"]:
                     paths_changed = True
-                    extra_paths.append[path]
+                    missing_paths.append(path)
 
             return (paths_changed, (missing_paths, extra_paths))
     except (FileNotFoundError, PermissionError):
