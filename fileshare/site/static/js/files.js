@@ -176,6 +176,13 @@ function changeDirectory(dst, pushHistory=true)
     }
 }
 
+function deleteItem(itemPath)
+{
+    $("#single-delete-modal").modal("show");
+    $("#delete-item-name").html(itemPath);
+    $("#delete-item-action").click(function() {})
+}
+
 function renameFile()
 {
     
