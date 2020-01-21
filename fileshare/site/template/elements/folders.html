@@ -7,9 +7,13 @@
         <thead>
             <tr>
                 <th class="text-center">
-                    <img src="{{ url_for('site.static', filename='assets/parent.svg') }}">
+                    <i class="fas fa-level-up-alt"></i>
                 </th>
-                <th colspan="6"><a href="javascript:changeDirectoryParent();">Go To Parent Directory</a></th>
+                <th colspan="4"><a href="javascript:changeDirectoryParent();">Go To Parent Directory</a></th>
+                <th colspan="2">
+                    <a><i class="fas fa-fw fa-download"></i></a>
+                    <a><i class="fas fa-fw fa-upload"></i></a>
+                    <a><i class="fas fa-fw fa-folder-plus"></i></a>
                 </th>
             </tr>
             <tr>
@@ -19,7 +23,7 @@
                 <th data-field="size" data-width=15 data-width-unit="%" data-sortable="true">Size</th>
                 <th data-field="dir_count" data-width=8 data-width-unit="%" data-sortable="true">Folders</th>
                 <th data-field="file_count" data-width=8 data-width-unit="%" data-sortable="true">File</th>
-                <th data-field="ops">Operation</th>
+                <th data-field="ops" data-align="center">Operation</th>
             </tr>
         </thead>
         <tbody id="folder-container">
