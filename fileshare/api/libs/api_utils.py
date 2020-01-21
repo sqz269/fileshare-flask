@@ -5,37 +5,23 @@ from fileshare.shared.database.database import db
 
 from fileshare.shared.database.common_query import CommonQuery
 
+from fileshare.api.libs.bootstrap_table_html import BootstrapTableHtmlFormatter
+
 import os
 import shutil
 
 from typing import Union
 
 
-def name_to_html_link(name, path, is_file):
-    TEMPLATE_DIRECTORY = f"""<a href="javascript:changeDirectory('{path}')">{name}</a>"""
-    TEMPLATE_FILE = f"""<a href="{path}">{name}</a>"""
-    if is_file:
-        return TEMPLATE_FILE
-    return TEMPLATE_DIRECTORY
-
-
-def db_list_files(record: Directory, for_bootstrap_tables=False) -> dict:
-    
+def db_list_directory_basic(record: Directory) -> dict:
     content = {"dirs": [], "files": []}
     if record.content_dir:
         for folder in record.content_dir.split(","):
             dir_rel_path    = os.path.join(record.rel_path, folder)
             dir_info        = CommonQuery.query_dir_by_relative_path(dir_rel_path)
-            
-            if for_bootstrap_tables:
-                name = name_to_html_link(dir_info.name, 
-                                        dir_info.rel_path.replace("\\", "/"), 
-                                        False)
-            else:
-                name = dir_info.name
 
             content["dirs"].append({
-                    "name"      : name,
+                    "name"      : dir_info.name,
                     "path"      : dir_info.rel_path.replace("\\", "/"),
                     "size"      : dir_info.size,
                     "last_mod"  : dir_info.last_mod,
@@ -48,16 +34,8 @@ def db_list_files(record: Directory, for_bootstrap_tables=False) -> dict:
             file_rel_path = os.path.join(record.rel_path, file)
             file_info = CommonQuery.query_file_by_relative_path(file_rel_path)
 
-            if for_bootstrap_tables:
-                name = name_to_html_link(file_info.name, 
-                                        file_info.rel_path.replace("\\", "/"), 
-                                        True)
-            else:
-                name = file_info.name
-
-
             content["files"].append({
-                    "name"      : name,
+                    "name"      : file_info.name,
                     "path"      : file_info.rel_path.replace("\\", "/"),
                     "size"      : file_info.size,
                     "last_mod"  : file_info.last_mod,
@@ -66,6 +44,21 @@ def db_list_files(record: Directory, for_bootstrap_tables=False) -> dict:
 
     parent_path = record.rel_path.replace("\\", "/")
     return {parent_path: content}
+
+
+def db_list_directory_bootstrap_table(record: Directory) -> dict:
+    contents = db_list_directory_basic(record)
+
+    for dir_content in contents.values():
+        for folder_contained in dir_content["dirs"]:
+            folder_contained["name"] = BootstrapTableHtmlFormatter.name_to_html_link(folder_contained["name"], folder_contained["path"], False)
+            folder_contained.update({"ops": BootstrapTableHtmlFormatter.generate_ops(folder_contained["name"], folder_contained["path"], False)})
+
+        for file_contained in dir_content["files"]:
+            file_contained["name"] = BootstrapTableHtmlFormatter.name_to_html_link(file_contained["name"], file_contained["path"], True)
+            file_contained.update({"ops": BootstrapTableHtmlFormatter.generate_ops(file_contained["name"], file_contained["path"], True)})
+
+    return contents
 
 
 def delete_file_or_directory_from_filesystem(entry: Union[Directory, File]):

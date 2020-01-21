@@ -164,6 +164,10 @@ function changeDirectory(dst, pushHistory=true)
                     $("#table-files").bootstrapTable("load", files);
                 }
             }
+
+            $('.ops-btn').click(function(e) {  // Prevent trigger bootstrap-table's click to select when clicking on the operation button
+                e.stopPropagation();
+            }); 
         }
         else
         {
@@ -175,4 +179,9 @@ function changeDirectory(dst, pushHistory=true)
 function renameFile()
 {
     
+}
+
+function downloadFile(path)
+{
+
 }

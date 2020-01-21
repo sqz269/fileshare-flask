@@ -50,7 +50,7 @@ def list_directory():
     if not directory:
         return utils.make_status_resp_ex(103)
 
-    data = api_utils.db_list_files(directory, True) if target_type == "table" else api_utils.db_list_files(directory)
+    data = api_utils.db_list_directory_bootstrap_table(directory) if target_type == "table" else api_utils.db_list_directory_basic(directory)
     return utils.make_json_resp_with_status(data, 200)
 
 
