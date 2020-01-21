@@ -7,7 +7,8 @@ function _notifyBase(type, heading, message, onclick=undefined)
         position: "top right",
         continueDelayOnInactiveTab: false,
         pauseDelayOnHover: true,
-        icon: false
+        icon: false,
+        onClick: onclick
     });
 }
 
