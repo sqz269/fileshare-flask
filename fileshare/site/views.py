@@ -39,7 +39,7 @@ def files(path):
             return render_template("error/404.html")
 
         if mode_download:
-            return send_file(file.abs_path, True, file.name)
+            return send_file(file.abs_path, file.name, as_attachment=True)
         else:
             return send_file(file.abs_path, mimetype=file.mimetype, conditional=True)
 

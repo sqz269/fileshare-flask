@@ -183,5 +183,5 @@ function renameFile()
 
 function downloadFile(path)
 {
-
+    window.open(path + "?mode=download", "_blank");
 }
