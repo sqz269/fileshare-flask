@@ -86,8 +86,10 @@ def request_download():
 
     if not directory.archive_id:
         api_utils.generate_and_register_archive(directory, commit=True)  # Might take a long time
+    elif directory.archive_id: # If there is an existing archive
+        return utils.make_json_resp_with_status({"status": 0, "details": f"There is an existing archive. view: /archive?path=<FolderPath> to access"}, 200)
 
-    return utils.make_json_resp_with_status({"status": 0, "details": "success, archive has been created"}, 200)
+    return utils.make_json_resp_with_status({"status": 0, "details": "success, archive has been created"}, 201)  # 201 -> Created
 
 
 @api.route("/folder", methods=["DELETE"])
