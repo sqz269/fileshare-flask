@@ -39,11 +39,8 @@ Resource Related Errors
 @api.route("/file", methods=["POST"])
 @api.route("/folder", methods=["POST"])
 def list_directory():
-    path = utils.get_url_param(request.args, "path")
+    path = utils.get_url_param(request.args, "path", convert_path=True)
     target_type = utils.get_url_param(request.args, "type")
-
-    if os.name == "nt":
-        path = path.replace("/", "\\")
 
     directory = CommonQuery.query_dir_by_relative_path(path)
 
@@ -56,10 +53,7 @@ def list_directory():
 
 @api.route("/file", methods=["PUT"])
 def upload():
-    path = utils.get_url_param(request.args, "path")
-
-    if os.name == "nt":
-        path = path.replace("/", "\\")
+    path = utils.get_url_param(request.args, "path", convert_path=True)
 
     files = request.files.getlist("File")
 
@@ -80,6 +74,20 @@ def upload():
     db.session.commit()  # Update the parent folder's database entry to match the newly added file names
 
     return utils.make_status_resp_ex(0)
+
+
+@api.route("/folder/download", methods=["GET"])
+def request_download():
+    path = utils.get_url_param(request.args, "path", convert_path=True)
+
+    directory = CommonQuery.query_dir_by_relative_path(path)
+    if not directory:
+        return utils.make_status_resp_ex(103)
+
+    if not directory.archive_id:
+        api_utils.generate_and_register_archive(directory, commit=True)  # Might take a long time
+
+    return utils.make_json_resp_with_status({"status": 0, "details": "success, archive has been created"}, 200)
 
 
 @api.route("/folder", methods=["DELETE"])
@@ -130,11 +138,8 @@ def delete():
 
 @api.route("/folder", methods=["PUT"])
 def folder():
-    path = utils.get_url_param(request.args, "path")  # Folder's parent path
+    path = utils.get_url_param(request.args, "path", convert_path=True)  # Folder's parent path
     name = utils.get_url_param(request.args, "name")  # new folder's name
-
-    if os.name == "nt":
-        path = path.replace("/", "\\")
 
     parent_dir = CommonQuery.query_dir_by_relative_path(path)
     if not parent_dir: return utils.make_status_resp_ex(103)  # Parent folder isn't valid

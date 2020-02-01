@@ -7,6 +7,11 @@ from fileshare.shared.database.common_query import CommonQuery
 
 from fileshare.api.libs.bootstrap_table_html import BootstrapTableHtmlFormatter
 
+from fileshare import app
+
+from fileshare.shared.libs import utils
+import hashlib
+
 import os
 import shutil
 
@@ -112,3 +117,16 @@ def delete_dir_from_db(directory: Directory, commit=False):
 
     if commit:
         db.session.commit()
+
+
+def generate_and_register_archive(directory: Directory, commit=False) -> None:
+    directory.archive_id = hashlib.md5(directory.abs_path.encode()).hexdigest()
+
+    zip_dst = os.path.join(app.config["ARCHIVE_STOREAGE_DIRECTORY"], directory.archive_id)
+    directory.archive_path = zip_dst
+    directory.archive_name = f"{directory.name}.zip"
+
+    if commit:
+        db.session.commit()
+
+    utils.generate_archive(directory.abs_path, directory.archive_path)

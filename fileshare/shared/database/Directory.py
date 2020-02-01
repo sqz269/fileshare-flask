@@ -11,6 +11,9 @@ class Directory(db.Model):
     dir_count: int    = db.Column(db.Integer)
     file_count: int   = db.Column(db.Integer)
     size: int         = db.Column(db.Integer, nullable=False)
+    archive_name: str = db.Column(db.Unicode(16))
+    archive_id: str   = db.Column(db.Unicode(32))
+    archive_path: str = db.Column(db.Unicode(512))
 
     def __repr__(self):
         return "<Name: %r; Path Abs: %r; Path Rel: %r; Size: %r;>" % (self.name, self.abs_path, self.rel_path, self.size)

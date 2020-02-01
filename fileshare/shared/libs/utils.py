@@ -3,19 +3,27 @@ import json
 
 from fileshare.api.libs.status_to_msg import STATUS_TO_HTTP_CODE, STATUS_TO_MESSAGE
 
-def get_url_param(url_params: dict, target_param: str) -> str:
-    """Get a url paramater's value, unlike requests.args.get
-    this function will return None if the paramater doesn't exist instead of rasing a exception
+import os
+import zipfile
+
+def get_url_param(url_params: dict, target_param: str, convert_path=False) -> str:
+    """Get a url paramater's value
+        unlike requests.args.get this function will return None if the paramater doesn't exist instead of rasing a exception
 
     
     Arguments:
         url_params {request.args/dict} -- dictionary of paramaters
         target_param {str} -- the paramater to retreive
+        convert_path {bool} -- True if the function will try to convert / in the param's value to \\ if the host system uses NT,
+                                It will only work if the target_param is "path", else it will just leave everything as it is
     
     Returns:
         [str] -- returns the value of the item if the paramater exists else returns empty string
     """
     try:
+        if convert_path and target_param == "path" and os.name == "nt":
+            return url_params[target_param].replace("/", "\\")
+
         return url_params[target_param]
     except:
         return ""
@@ -82,6 +90,11 @@ def cvt_value_to_type(value, value_org, target_type):
     bool_value_true  = ["yes", "yea", "ok", "true"]
     bool_value_false = ["no", "not", "nope", "false"]
 
+    if isinstance(value_org, bool):
+        return value in bool_value_true
+
+    if value_org == None: return None
+
     if value_org:
         return type(value_org)(value)
 
@@ -101,3 +114,12 @@ def cvt_value_to_type(value, value_org, target_type):
 
         else:
             return target_type(value)
+
+
+def generate_archive(src, dst, mode=zipfile.ZIP_STORED):
+    with zipfile.ZipFile(dst, "w", compression=mode) as archive:
+        for dirname, dirs, files in os.walk(src):
+            for filename in files:
+                absname = os.path.abspath(os.path.join(dirname, filename))
+                arcname = absname[len(src) + 1:]
+                archive.write(absname, arcname)

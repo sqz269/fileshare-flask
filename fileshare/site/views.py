@@ -6,7 +6,6 @@ from fileshare.shared.libs.utils import get_url_param
 from fileshare.shared.database.common_query import CommonQuery
 
 import os
-
 import magic
 
 site = Blueprint("site", __name__, template_folder="template", static_folder="static", static_url_path="/site/static")
@@ -22,9 +21,20 @@ def filepage():
         return render_template("index.html")
 
 
+@site.route("/archive", methods=["GET"])
+def download_archive():
+    path = get_url_param(request.args, "path", convert_path=True)
+
+    directory = CommonQuery.query_dir_by_relative_path(path)
+
+    if directory and directory.archive_path:
+        return send_file(directory.archive_path, attachment_filename=directory.archive_name, as_attachment=True)
+    else:
+        return render_template("error/404.html")
+
+
 @site.route("/<path:path>", methods=["GET"])
 def files(path):
-    print("Access path: {}".format(path))
     try:
         mode_download = get_url_param(request.args, "mode") == "download"
 
@@ -39,7 +49,7 @@ def files(path):
             return render_template("error/404.html")
 
         if mode_download:
-            return send_file(file.abs_path, file.name, as_attachment=True)
+            return send_file(file.abs_path, attachment_filename=file.name, as_attachment=True)
         else:
             return send_file(file.abs_path, mimetype=file.mimetype, conditional=True)
 

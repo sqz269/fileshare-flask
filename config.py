@@ -3,6 +3,8 @@ class Config:
     SHARED_DIRECTORY = [""]
     # List of directory to be shared, use absolute path
 
+    ARCHIVE_STOREAGE_DIRECTORY = 
+
     SECURE_UPLOAD_FILENAME = True
     # bool, True werkzeug.secure_filename will be called on the uploaded file name
     # It is strongly advised to set this option to true as it's only way to prevent malicious path names being used

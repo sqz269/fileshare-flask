@@ -29,6 +29,9 @@ def unpack_dir_info_to_db_entry(data: dict) -> Directory:
     entry.file_count    = data["sub_file_count"]
     entry.content_dir   = ",".join(data["dir_content"])
     entry.content_file  = ",".join([value["name"] for value in data["file_content"].values()])
+    entry.archive_id    = None
+    entry.archive_name  = None
+    entry.archive_path  = None
     # Because the file_content is a dictionary so we want to extra the names of the file and put it in a list
     return entry
 
@@ -99,16 +102,19 @@ def write_info(path):
 def init_db():
     preped = is_db_initalized("db_info.json")
     if preped[0]:
-        print("Shared path changed. Missing paths: {}. New paths: {}".format(preped[1][0], preped[1][1]))
+        app.logger.info("Shared path changed. Missing paths: {}. New paths: {}".format(preped[1][0], preped[1][1]))
     else:
-        print("Shared path did not change.")
+        app.logger.info("Shared path did not change.")
         return;
 
     ctx = app.app_context()  # Crates an app context so the database can be edited
     ctx.push()
 
+    write_info("db_info.json")
+
     db.create_all()
-    print("Initializing database records")
+    app.logger.info("Initializing database records")
+
     records_dir = 0
     records_file = 0
 
@@ -130,13 +136,12 @@ def init_db():
     # usr.id = 0
     # usr.username = "admin"
     # usr.password = "hunter2"
-    # usr.permission = 0xb11111
+    # usr.permission = 0xb11111  # TODO
     # db.session.add(usr)
 
-    print(f"About to commit total of {records_dir + records_file} records. {records_file} file records. {records_dir} dir records. One Administrator Account record")
+    app.logger.info(f"About to commit total of {records_dir + records_file} records. {records_file} file records. {records_dir} dir records.")
+    
     db.session.commit()
-
-    write_info("db_info.json")
 
     ctx.pop()
 
