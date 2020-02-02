@@ -76,7 +76,7 @@ def upload():
     return utils.make_status_resp_ex(0)
 
 
-@api.route("/folder/download", methods=["GET"])
+@api.route("/folder/download", methods=["POST"])
 def request_download():
     path = utils.get_url_param(request.args, "path", convert_path=True)
 
