@@ -17,7 +17,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     </head>
     <body>
-        {% include 'elements/breadcrumb.html' %}
+        {% include 'elements/navbar.html' %}
 
         {% include 'elements/folders.html' %}
         {% include 'elements/files.html' %}
@@ -37,6 +37,10 @@
         <script src="{{ url_for('site.static', filename='js/notify.js') }}"></script>
         <script src="{{ url_for('site.static', filename='js/main.js') }}"></script>
 
+        <style>
+            body { padding-top: 70px; }
+        </style>
+        
         <script>
         $(function() {
             $('#table-files').bootstrapTable();
