@@ -1,25 +1,30 @@
+class DeleteMode:
+    DELETE_BOTH_FILE_AND_ENTRY = 1
+    DELETE_DATABASE_ENTRY_ONLY = 2
+
 class Config:
-    SQLALCHEMY_DATABASE_URI = "sqlite:///"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///D:/PROG/fileshare-flask/test.db"
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Suppress the overhead warning, set to true if needed
+
     SHARED_DIRECTORY = [""]
     # List of directory to be shared, use absolute path
 
-    ARCHIVE_STOREAGE_DIRECTORY = 
+    ARCHIVE_STOREAGE_DIRECTORY = None
 
     SECURE_UPLOAD_FILENAME = True
     # bool, True werkzeug.secure_filename will be called on the uploaded file name
     # It is strongly advised to set this option to true as it's only way to prevent malicious path names being used
 
-    DATABASE_URI = None
-
-    DETECT_FILE_MIME = True
+    # DETECT_FILE_MIME = True
     # True if you want the program to use "magic.Magic(mime=True).from_buffer()" to detect the file's mime type and serve accordingly
-    FILE_MIME = None
+    # FILE_MIME = None
     #  Force to serve all files using this mime type, will override detect_file_mime
 
     ACCESS_PASSWORD = None
     #  if you don't want a password then leave it as a false value
 
-    DELETE_MODE = 2
+    DELETE_MODE = DeleteMode.DELETE_DATABASE_ENTRY_ONLY
     # delete mode represents how is a file going to be deleted
     # 1 represents both the database record and the actual file is going to be removed
     # 2 Represents the file/folder's record is only going to be deleted from the database, not the filesystem
