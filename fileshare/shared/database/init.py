@@ -1,93 +1,37 @@
-from fileshare.shared.database.database import db
-from fileshare.shared.database.Directory import Directory
-from fileshare.shared.database.File import File
-# from fileshare.shared.database.User import User
-from fileshare import app
+import json
+import time
+from typing import List, Tuple
 
+from fileshare import app
+from fileshare.shared.database.common_query import CommonQuery
+from fileshare.shared.database.database import db
+from fileshare.shared.database.db_utils import (add_shared_path_to_db,
+                                                remove_shared_path_from_db,
+                                                scan_and_update_deleted_files,
+                                                scan_and_update_new_files,
+                                                is_database_initalized)
 from fileshare.shared.libs.file_index import index_file
 
-import time
-import json
 
-def unpack_dir_info_to_db_entry(data: dict) -> Directory:
-    """Unpacks a file index result about a directory to a database entry
-
-    Arguments:
-        data {dict} -- The value of a directory record that is returned by index_file
-
-    Returns:
-        Directory -- The database entry that represents the directory
-    """
-    entry = Directory()
-    entry.abs_path      = data["absolute_path"]
-    entry.rel_path      = data["relative_path"]
-    entry.parent_path   = data["parent_path"]
-    entry.name          = data["name"]
-    entry.last_mod      = data["last_mod"]
-    entry.size          = data["size"]
-    entry.dir_count     = data["sub_dir_count"]
-    entry.file_count    = data["sub_file_count"]
-    entry.content_dir   = ",".join(data["dir_content"])
-    entry.content_file  = ",".join([value["name"] for value in data["file_content"].values()])
-    entry.archive_id    = None
-    entry.archive_name  = None
-    entry.archive_path  = None
-    # Because the file_content is a dictionary so we want to extra the names of the file and put it in a list
-    return entry
-
-
-def unpack_file_info_to_db_entry(data: dict) -> File:
-    """Unpacks a file index result about a file to a database entry
-
-    Arguments:
-        data {[type]} -- [description]
-
-    Returns:
-        File -- The database entry that represents the file
-    """
-    entry = File()
-    entry.abs_path      = data["absolute_path"]
-    entry.rel_path      = data["relative_path"]
-    entry.parent_path   = data["parent_path"]
-    entry.name          = data["name"]
-    entry.last_mod      = data["last_mod"]
-    entry.size          = data["size"]
-    entry.mimetype      = data["mimetype"]
-    return entry
-
-
-def is_db_initalized(info_path: str) -> tuple:
-    """Checks if the file database is initialized
-    it helps to determin if we need to call prepare_db
-
-    Arguments:
-        info_path {str} -- the path like string that points the the infomation written by write_info function
-
-    Return:
-        tuple - with 2 element. first element (True/False) represents if the shareing paths are changed
-                2nd element is a tuple contains 2 element,
-                    first element in the tuple is a list of path shared that is missing since the last file index
-                    second element in the tuple is a list of path shared that is added since the last file index
-    """
+def get_missing_paths() -> Tuple[List[str], List[str]]:
     try:
-        with open(info_path, "r") as file:
+        with open("db_info.json", "r") as file:
             info_json = json.load(file)
-            paths_changed = False
+
+            paths_recorded: list = info_json["paths_recorded"]
             missing_paths = []
             extra_paths = []
-            for path in info_json["paths_recorded"]:
+            for path in paths_recorded:
                 if path not in app.config["SHARED_DIRECTORY"]:
-                    paths_changed = True
-                    missing_paths.append(path)
+                    extra_paths.append(path)
 
             for path in app.config["SHARED_DIRECTORY"]:
-                if path not in info_json["paths_recorded"]:
-                    paths_changed = True
+                if path not in paths_recorded:
                     missing_paths.append(path)
 
-            return (paths_changed, (missing_paths, extra_paths))
-    except (FileNotFoundError, PermissionError):
-        return (True, (app.config["SHARED_DIRECTORY"], []))
+        return (extra_paths, missing_paths)
+    except FileNotFoundError:
+        return ([], app.config["SHARED_DIRECTORY"])
 
 
 def write_info(path):
@@ -100,50 +44,27 @@ def write_info(path):
 
 
 def init_db():
-    preped = is_db_initalized("db_info.json")
-    if preped[0]:
-        app.logger.info("Shared path changed. Missing paths: {}. New paths: {}".format(preped[1][0], preped[1][1]))
-    else:
-        app.logger.info("Shared path did not change.")
-        return;
+    # TODO: Determin if database has been initalized or not
+    # if not, we have to call db.create_all()
+    with app.app_context():
+        if not is_database_initalized():
+            db.create_all()
+        app.logger.info("Initializing database records")
 
-    ctx = app.app_context()  # Crates an app context so the database can be edited
-    ctx.push()
+        extra_paths, missing_paths = get_missing_paths()
+        if not extra_paths and not missing_paths:
+            app.logger.info("Shared path did not change from previous run")
 
-    write_info("db_info.json")
+        for path in extra_paths: remove_shared_path_from_db(path)
+        for path in missing_paths: add_shared_path_to_db(path)
 
-    db.create_all()
-    app.logger.info("Initializing database records")
+        write_info("db_info.json")
 
-    records_dir = 0
-    records_file = 0
-
-    index = []
-    for path in app.config["SHARED_DIRECTORY"]:
-        index.append(index_file(path))
-
-    for indexed_files in index:
-        for directory_data in indexed_files.values():
-            entry = unpack_dir_info_to_db_entry(directory_data)
-            db.session.add(entry)
-            records_dir += 1
-            for files_data in directory_data["file_content"].values():
-                entry = unpack_file_info_to_db_entry(files_data)
-                db.session.add(entry)
-                records_file += 1
-
-    # usr = User()
-    # usr.id = 0
-    # usr.username = "admin"
-    # usr.password = "hunter2"
-    # usr.permission = 0xb11111  # TODO
-    # db.session.add(usr)
-
-    app.logger.info(f"About to commit total of {records_dir + records_file} records. {records_file} file records. {records_dir} dir records.")
-    
-    db.session.commit()
-
-    ctx.pop()
+        db_last_mod = CommonQuery.query_last_modified_item(push_context=False)
+        for path in app.config["SHARED_DIRECTORY"]:
+            indexed_files = index_file(path)
+            scan_and_update_deleted_files(path, db_last_mod, indexed_files)
+            scan_and_update_new_files(path, db_last_mod, indexed_files)
 
 """
 Returned structure sample (file_index.py also have one)
