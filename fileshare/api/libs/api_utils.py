@@ -68,7 +68,7 @@ def db_list_directory_bootstrap_table(record: Directory) -> dict:
 
 def delete_file_or_directory_from_filesystem(entry: Union[Directory, File]):
     """Deletes a file or a directory from the filesystem permanently
-    
+
     Arguments:
         entry {Union[Directory, File]} -- The database entry that represents the file/directory that is going to be deleted
     """
@@ -83,7 +83,7 @@ def delete_file_or_directory_from_filesystem(entry: Union[Directory, File]):
 
 def delete_file_or_directory_from_db(entry: Union[Directory, File], commit=False):
     """Delete either a file or directory entry from the database
-    
+
     Arguments:
         entry {Union[Directory, File]} -- The entry you want to delete
     """
@@ -106,7 +106,7 @@ def delete_file_from_db(file: File, commit=False):
     if commit:
         db.session.commit()
 
-
+# Can be merged into one function with delete_file_from_db
 def delete_dir_from_db(directory: Directory, commit=False):
     parent = CommonQuery.query_dir_by_relative_path(directory.parent_path)
     content_dir_list = parent.content_dir.split(",")
@@ -126,7 +126,7 @@ def generate_and_register_archive(directory: Directory, commit=False) -> None:
     directory.archive_path = zip_dst
     directory.archive_name = f"{directory.name}.zip"
 
+    utils.generate_archive(directory.abs_path, directory.archive_path)
+
     if commit:
         db.session.commit()
-
-    utils.generate_archive(directory.abs_path, directory.archive_path)
