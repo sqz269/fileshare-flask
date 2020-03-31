@@ -10,13 +10,13 @@ def get_url_param(url_params: dict, target_param: str, convert_path=False) -> st
     """Get a url paramater's value
         unlike requests.args.get this function will return None if the paramater doesn't exist instead of rasing a exception
 
-    
+
     Arguments:
         url_params {request.args/dict} -- dictionary of paramaters
         target_param {str} -- the paramater to retreive
         convert_path {bool} -- True if the function will try to convert / in the param's value to \\ if the host system uses NT,
                                 It will only work if the target_param is "path", else it will just leave everything as it is
-    
+
     Returns:
         [str] -- returns the value of the item if the paramater exists else returns empty string
     """
@@ -30,13 +30,13 @@ def get_url_param(url_params: dict, target_param: str, convert_path=False) -> st
 
 
 def get_cookie_value(cookies, cookie_name):
-    """Get's a cookies value
+    """Gets a cookies value
 
-        
+
     Arguments:
         cookies {request.cookies/dict} -- dictionary of cookies
         cookie_name {str} -- the cookies to retreive
-    
+
     Returns:
         [str] -- returns the value of the item if the cookies exists else returns empty string
     """
@@ -57,11 +57,11 @@ def make_status_resp_ex(status_code):
 def make_json_resp_with_status(data: dict, status: int) -> Response:
     """Creates a response object with at status code and json
     the mimetype will be 'application/json'
-    
+
     Arguments:
         data {dict} -- the data with be send with the response
         status {int} -- the http status the response will be
-    
+
     Returns:
         flask.Response -- flask.Response object with json payload and a http status
     """
@@ -100,7 +100,7 @@ def cvt_value_to_type(value, value_org, target_type):
 
     elif target_type:
         target_type = string_to_type[target_type]
-        
+
         if isinstance(target_type, bool):
             if value_org in bool_value_true:
                 return True
@@ -108,7 +108,7 @@ def cvt_value_to_type(value, value_org, target_type):
                 return False
             else:
                 raise ValueError("Invalid boolean value: {}".format(value))
-        
+
         elif target_type == None:
             return None
 
