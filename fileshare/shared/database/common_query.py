@@ -1,11 +1,14 @@
-from fileshare.shared.database.database import db
+import os
+from typing import Union, Tuple
 
+import magic
+
+from fileshare import app
+from fileshare.shared.database.database import db
 from fileshare.shared.database.Directory import Directory
 from fileshare.shared.database.File import File
 from fileshare.shared.database.User import User
 
-import os
-import magic
 
 class CommonQuery:
 
@@ -17,6 +20,62 @@ class CommonQuery:
     @staticmethod
     def query_file_by_relative_path(path) -> File:
         return File.query.get(path)
+
+    @staticmethod
+    def query_file_by_name(file_name) -> list:
+        return File.query.filter(name=file_name).all()
+
+
+    @staticmethod
+    def query_dir_by_relative_path(path) -> Directory:
+        return Directory.query.get(path)
+
+
+    @staticmethod
+    def query_all_by_absolute_path(path) -> Tuple[Tuple[File], Tuple[Directory]]:
+        """Query all records by their abs_path in the database by the start of path
+            (Simplified?: Query all records by it's common_prefix of the path and the record's abs_path)
+
+        Arguments:
+            path {str} -- the path to match
+
+        Returns:
+            tuple -- first element contain a list of matching records that are in the File table
+                        second element contains a list of matching records in the Directory table
+        """
+        files = File.query.filter(File.abs_path.startswith(path)).all()
+        dirs = Directory.query.filter(Directory.abs_path.startswith(path)).all()
+        return (files, dirs)
+
+
+    @staticmethod
+    def query_last_modified_item(push_context=True) -> float:
+        if push_context:
+            with app.app_context():
+                lm_file = db.session.query(db.func.max(File.last_mod)).first()[0]
+                lm_dir = db.session.query(db.func.max(Directory.last_mod)).first()[0]
+        else:
+            lm_file = db.session.query(db.func.max(File.last_mod)).first()[0]
+            lm_dir = db.session.query(db.func.max(Directory.last_mod)).first()[0]
+
+        return lm_file if lm_file > lm_dir else lm_dir
+
+
+
+    @staticmethod
+    def delete_dir_by_relative_path(path) -> Directory:
+        """Deletes a directory record from the database
+
+        Arguments:
+            path {str} -- the relative path of the folder that is going to be deleted
+
+        Returns:
+            Directory -- the database entry for the deleted folder
+        """
+        folder = File.query.get(path)
+        db.session.delete(folder)
+        db.session.commit()
+        return folder
 
 
     @staticmethod
@@ -33,31 +92,6 @@ class CommonQuery:
         db.session.delete(file)
         db.session.commit()
         return file
-
-
-    @staticmethod
-    def query_file_by_name(file_name) -> list:
-        return File.query.filter(name=file_name).all()
-
-
-    @staticmethod
-    def query_dir_by_relative_path(path) -> Directory:
-        return Directory.query.get(path)
-
-
-    def delete_dir_by_relative_path(path) -> Directory:
-        """Deletes a directory record from the database
-
-        Arguments:
-            path {str} -- the relative path of the folder that is going to be deleted
-
-        Returns:
-            Directory -- the database entry for the deleted folder
-        """
-        folder = File.query.get(path)
-        db.session.delete(folder)
-        db.session.commit()
-        return folder
 
 
     @staticmethod
