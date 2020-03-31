@@ -188,7 +188,24 @@ function renameFile()
     
 }
 
-function downloadFile(path)
+function downloadFile(path, isFolder)
 {
-    window.open(path + "?mode=download", "_blank");
+    if (isFolder)
+    {
+        sendRequest(`/api/folder/download?path=${path}`, null, downloadFolderCallback)
+
+        function downloadFolderCallback(status, message)
+        {
+            if (status >= 200 || status <= 300)
+            {
+                let urlString = `/archive?path=${path}`;
+                window.open(urlString, "_blank");
+            }
+        }
+    }
+    else
+    {
+        let urlString = path + "?mode=download";
+        window.open(urlString, "_blank");
+    }
 }
