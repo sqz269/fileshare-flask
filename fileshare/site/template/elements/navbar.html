@@ -1,6 +1,8 @@
 <div class="container">
     <nav class="navbar navbar-expand-sm fixed-top navbar-light bg-light">
-        <button class="navbar-brand" onclick="javascript:changeDirectoryParent();"><i class="fas fa-level-up-alt fa-fw"></i>Go To Parent Directory</button>
+        <div>
+            <button class="btn btn-dark" onclick="javascript:changeDirectoryParent();"><i class="fas fa-level-up-alt fa-fw"></i>Go To Parent Folder</button>
+        </div>
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -10,10 +12,10 @@
             </ul>
             <span class="navbar-text">
                 <button class="btn btn-dark" type="button" onclick=""><i class="fas fa-fw fa-download"></i></button>
-                <button class="btn btn-dark" type="button" onclick=""><i class="fas fa-fw fa-upload"></i></button>
-                <button class="btn btn-dark" type="button" onclick=""><i class="fas fa-fw fa-folder-plus"></i></button>
-                <button class="btn btn-dark" type="button" onclick=""><i class="fas fa-fw fa-trash"></i></button>
-                <button class="btn btn-dark" type="button" onclick=""><i class="fas fa-fw fa-exchange-alt"></i></button>
+                <button class="btn btn-dark" type="button" onclick="javascript:$('#upload-modal').modal('show');"><i class="fas fa-fw fa-upload"></i></button>
+                <button class="btn btn-dark" type="button" onclick="javascript:$('#new-folder-modal').modal('show');"><i class="fas fa-fw fa-folder-plus"></i></button>
+                <button class="btn btn-dark" type="button" onclick="javascript:$('#delete-modal').modal('show');"><i class="fas fa-fw fa-trash"></i></button>
+                <button class="btn btn-dark" type="button" onclick=""><i class="fas fa-fw fa-exchange-alt"></i></button> <!-- TODO -->
             </span>
         </div>
     </nav>
