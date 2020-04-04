@@ -36,8 +36,8 @@ Resource Related Errors
 102 - Invalid/Illegal Path has been provided
 103 - Path provided does not exist
 """
-@api.route("/file", methods=["POST"])
-@api.route("/folder", methods=["POST"])
+@api.route("/file", methods=["GET"])
+@api.route("/folder", methods=["GET"])
 def list_directory():
     path = utils.get_url_param(request.args, "path", convert_path=True)
     target_type = utils.get_url_param(request.args, "type")
@@ -132,7 +132,7 @@ def delete():
     db.session.commit()
 
     if failed_to_delete:
-        return utils.make_status_resp(0, f"Errors [{STATUS_TO_MESSAGE[failed_to_delete_reason]}] has prevented some file from being deleted. A total of {len(failed_to_delete)} files out of {len(targets)} failed to be deleted", STATUS_TO_HTTP_CODE[0])
+        return utils.make_status_resp(0, f"Errors [{STATUS_TO_MESSAGE[failed_to_delete_reason]}] has prevented some file from being deleted. A total of {len(failed_to_delete)} items out of {len(targets)} failed to be deleted", STATUS_TO_HTTP_CODE[0])
 
 
     return utils.make_status_resp_ex(0)

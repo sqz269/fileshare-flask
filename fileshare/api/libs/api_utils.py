@@ -56,10 +56,12 @@ def db_list_directory_bootstrap_table(record: Directory) -> dict:
 
     for dir_content in contents.values():
         for folder_contained in dir_content["dirs"]:
+            folder_contained.update({"name_raw": folder_contained["name"]})
             folder_contained["name"] = BootstrapTableHtmlFormatter.name_to_html_link(folder_contained["name"], folder_contained["path"], False)
             folder_contained.update({"ops": BootstrapTableHtmlFormatter.generate_ops(folder_contained["name"], folder_contained["path"], False)})
 
         for file_contained in dir_content["files"]:
+            file_contained.update({"name_raw": file_contained["name"]})
             file_contained["name"] = BootstrapTableHtmlFormatter.name_to_html_link(file_contained["name"], file_contained["path"], True)
             file_contained.update({"ops": BootstrapTableHtmlFormatter.generate_ops(file_contained["name"], file_contained["path"], True)})
 
