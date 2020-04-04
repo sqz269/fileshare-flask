@@ -51,6 +51,7 @@
 
 <!-- Delete modal, for single item-->
 <!-- START Delete MODAL -->
+<!-- @DEPRECATED -->
 <div class="modal fade" id="single-delete-modal" tabindex="-1" role="dialog" aria-labelledby="single-delete-modal-label" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -63,7 +64,7 @@
                 <div class="container">
                     <p class="lead">Delete <span id="delete-item-name" style="word-wrap: break-word;" class="font-weight-bold"></span>?</p>
                     <hr class="my-3" />
-                    <button class="btn btn-button btn-danger btn-block" id="delete-item-action">DELETE</button>
+                    <button class="btn btn-button btn-danger btn-block" id="delete-item-action" onclick="javascript:sendDeleteRequest();">DELETE</button>
                 </div>
             </div>
             <div class="modal-footer">
@@ -89,10 +90,9 @@
                     <p class="lead">You are about to delete<br>
                         <span class="font-weight-bold" id="file-delete-total">PLACE_HOLDER</span> Files<br>
                         <span class="font-weight-bold" id="folder-delete-total">PLACE_HOLDER</span> Folders
-                        <br><br>This Action is irreversible.
                     </p>
                     <hr class="my-3" />
-                    <button class="btn btn-button btn-danger btn-block" onclick="javascript:deleteFile();">DELETE</button>
+                    <button class="btn btn-button btn-danger btn-block" onclick="javascript:sendDeleteRequest();">DELETE</button>
                 </div>
             </div>
             <div class="modal-footer">
@@ -124,7 +124,7 @@
 </div>
 <!-- END Download MODAL -->
 
-<!-- START Download MODAL -->
+<!-- START Rename MODAL -->
 <div class="modal fade" id="rename-modal" tabindex="-1" role="dialog" aria-labelledby="rename-modal-label" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -135,7 +135,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p class="lead">Renaming <span id="rename-org-name" class="font-weight-bold">PLACE_HOLDER</span>: 
+                <p class="lead">Renaming <span id="rename-org-name" class="font-weight-bold">PLACE_HOLDER</span>:
                 </p>
                 <div class="form-group">
                     <input type="text" class="form-control" id="rename-new-name" placeholder="New Name: ">
