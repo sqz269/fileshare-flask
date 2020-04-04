@@ -1,6 +1,6 @@
 /**
  * Change the url paramter "?path=" with out reload the page
- * 
+ *
  * @param {string} cPath current working directory
  */
 function setURLCurrentDirectory(cPath)
@@ -22,11 +22,11 @@ function setUploadFileLabel()
             let totalFiles = 0;
             for (let i = 0; i < fileInputElement.files.length; i++)  // Count files in total
             {
-                let file = fileInputElement.files[i]; 
+                let file = fileInputElement.files[i];
                 totalFiles += 1;
             }
             if (totalFiles > 1)  // if there is more than one file selected
-            { 
+            {
                 let firstFileName = fileInputElement.files[0].name;
                 $("#file-upload-label").html(firstFileName + " and " + (totalFiles - 1) + " More");
             }
@@ -51,7 +51,7 @@ function newFolder()
         resp = JSON.parse(resp);
         if (status === 200)
         {
-            notifyUserSuccess("Success", "Folder has been created");  
+            notifyUserSuccess("Success", "Folder has been created");
         }
         else
         {
@@ -67,7 +67,7 @@ function uploadFile()
 
     for (let i = 0; i < $fileInputElement.files.length; i++)
     {
-        formData.append("File", $fileInputElement.files[i], $fileInputElement.files[i].name);        
+        formData.append("File", $fileInputElement.files[i], $fileInputElement.files[i].name);
     }
 
     let dst = getUrlVars()["path"];
@@ -99,13 +99,13 @@ function uploadFile()
             notifyUserSuccess("Success", "File uploaded successfully");
         },
 
-        statusCode: 
+        statusCode:
         {
             401: function (xhr)
             {
                 // console.log("UNAUTHORIZED");
             },
-            
+
             500: function (xhr)
             {
                 // console.log("INTERNAL SERVER ERROR");
@@ -137,13 +137,13 @@ function changeDirectoryParent()
 
 /**
  * lists a directory
- * 
+ *
  * @param {string} dst the path of the directory to list
  * @param {boolean} pushHistory will the changed url be pushed to history (enabling back button to access last visited directory)
  */
 function changeDirectory(dst, pushHistory=true)
 {
-    sendRequest(`/api/file?path=${dst}&type=table`, null, changeDirectoryCallback, {"pushHistory": pushHistory});
+    sendRequest(`/api/file?path=${dst}&type=table`, null, changeDirectoryCallback, {"pushHistory": pushHistory}, undefined, "GET");
 
     function changeDirectoryCallback(status, resp, params)
     {
@@ -167,7 +167,7 @@ function changeDirectory(dst, pushHistory=true)
 
             $('.ops-btn').click(function(e) {  // Prevent trigger bootstrap-table's click to select when clicking on the operation button
                 e.stopPropagation();
-            }); 
+            });
         }
         else
         {
@@ -176,16 +176,54 @@ function changeDirectory(dst, pushHistory=true)
     }
 }
 
-function deleteItem(itemPath)
+function deleteItem()
 {
-    $("#single-delete-modal").modal("show");
-    $("#delete-item-name").html(itemPath);
-    $("#delete-item-action").click(function() {})
+    let selectionFolders = $("#table-folders").bootstrapTable("getSelections");
+    let selectionFiles = $("#table-files").bootstrapTable("getSelections");
+    $("#folder-delete-total").html(selectionFolders.length);
+    $("#file-delete-total").html(selectionFiles.length);
+    $("#delete-modal").modal("show");
+}
+
+function sendDeleteRequest()
+{
+    let selectionFolders = $("#table-folders").bootstrapTable("getSelections");
+    let selectionFiles = $("#table-files").bootstrapTable("getSelections");
+
+    let requestJson = {"file": [], "folder": []};
+    for (let i = 0; i < selectionFolders.length; i++)
+    {
+        let item = selectionFolders[i];
+        requestJson.folder.push(item.path);
+    }
+
+    for (let i = 0; i < selectionFiles.length; i++)
+    {
+        let item = selectionFiles[i];
+        requestJson.file.push(item.path);
+    }
+
+    sendRequest("/api/file", JSON.stringify(requestJson), deleteRequestCallBack, undefined, undefined, "DELETE");
+
+    function reloadWindow() {window.location.reload()}
+
+    function deleteRequestCallBack(status, resp)
+    {
+        resp = JSON.parse(resp);
+        if (status === 200)
+        {
+            notifyUserSuccessClickAction("Success", "Items has been deleted, Click Here to reload", reloadWindow);
+        }
+        else
+        {
+            notifyUserError("Error", `${resp["status"]} Failed to delete items due to ${resp['details']}`);
+        }
+    }
 }
 
 function renameFile()
 {
-    
+
 }
 
 function downloadFile(path, isFolder)
