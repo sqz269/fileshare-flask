@@ -29,5 +29,5 @@ function notifyUserErrorClickAction(heading, message, onClickFunction)
 
 function notifyUserSuccessClickAction(heading, message, onClickFunction)
 {
-    _notifyBase("error", heading, message, onClickFunction);
+    _notifyBase("success", heading, message, onClickFunction);
 }
