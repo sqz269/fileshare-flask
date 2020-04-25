@@ -1,7 +1,5 @@
 from fileshare import app
-
 from fileshare.shared.database.database import db
-
 from fileshare.shared.database.init import init_db
 
 # DEBUG    10
@@ -20,4 +18,4 @@ db.init_app(app)
 init_db()
 
 if __name__ == "__main__":
-    app.run("localhost", 5000)
+    app.run(app.config["LOCAL_BINDING_IP_ADDRESS"], app.config["LOCAL_BINDING_PORT"])
