@@ -158,6 +158,6 @@ def new_folder():
     except (exc.IntegrityError, FileExistsError):
         return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_ALREADY_EXISTS)
     except PermissionError:
-        return utils.make_status_resp_ex()
+        return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_ACCESS_DENIED)
 
     return utils.make_status_resp_ex(STATUS_ENUM.SUCCESS)
