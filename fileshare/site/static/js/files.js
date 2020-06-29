@@ -72,6 +72,8 @@ function uploadFile()  // TODO: Display a progress bar
 
     let dst = getUrlVars()["path"];
 
+    $("#upload-progress-div").removeClass("d-none");
+
     $.ajax({
         xhr: function()
         {
@@ -97,6 +99,7 @@ function uploadFile()  // TODO: Display a progress bar
         success: function()
         {
             notifyUserSuccess("Success", "File uploaded successfully");
+            $("#upload-progress-div").addClass("d-none");
         },
 
         statusCode:
