@@ -52,7 +52,7 @@ def list_directory():
 
 
 @api.route("/file", methods=["PUT"])
-def upload():
+def upload_file():
     path = utils.get_url_param(request.args, "path", convert_path=True)
 
     files = request.files.getlist("File")
@@ -77,7 +77,7 @@ def upload():
 
 
 @api.route("/folder/download", methods=["POST"])
-def request_download():
+def download_folder():
     path = utils.get_url_param(request.args, "path", convert_path=True)
 
     directory = CommonQuery.query_dir_by_relative_path(path)
@@ -94,7 +94,7 @@ def request_download():
 
 @api.route("/folder", methods=["DELETE"])
 @api.route("/file", methods=["DELETE"])
-def delete():
+def delete_file_or_folder():
     content = request.json
 
     targets = []
@@ -139,7 +139,7 @@ def delete():
 
 
 @api.route("/folder", methods=["PUT"])
-def folder():
+def new_folder():
     path = utils.get_url_param(request.args, "path", convert_path=True)  # Folder's parent path
     name = utils.get_url_param(request.args, "name")  # new folder's name
 
