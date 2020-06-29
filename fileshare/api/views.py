@@ -2,7 +2,7 @@ from flask import Blueprint, request
 
 from fileshare.shared.database.common_query import CommonQuery
 
-from fileshare.api.libs.status_to_msg import STATUS_TO_MESSAGE, STATUS_TO_HTTP_CODE
+from fileshare.api.libs.status_to_msg import STATUS_ENUM
 from fileshare.api.libs import api_utils
 
 from fileshare.shared.libs import utils
@@ -153,8 +153,11 @@ def new_folder():
     parent_dir.content_dir = parent_dir.content_dir + f",{name}" if parent_dir.content_dir else f"{name}"
 
     try:
+        os.mkdir(os.path.join(parent_dir.abs_path, name))
         db.session.commit()
-    except exc.IntegrityError:
-        return utils.make_status_resp_ex(100)
+    except (exc.IntegrityError, FileExistsError):
+        return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_ALREADY_EXISTS)
+    except PermissionError:
+        return utils.make_status_resp_ex()
 
-    return utils.make_status_resp_ex(0)
+    return utils.make_status_resp_ex(STATUS_ENUM.SUCCESS)
