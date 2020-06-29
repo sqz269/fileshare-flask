@@ -12,7 +12,7 @@ from fileshare.shared.database.database import db
 from fileshare import app
 
 from sqlalchemy import exc  # Sqlalchemy exceptions
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 
 import os
 
