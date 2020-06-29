@@ -8,7 +8,7 @@ function setURLCurrentDirectory(cPath)
     history.pushState({path: cPath}, "", `?path=${cPath}`);
 }
 
-function setUploadFileLabel()
+function setUploadFileLabel()  // TODO: Truncate Long filename
 {
     let fileInputElement = document.getElementById("file-upload");  // get file input element
     if ("files" in fileInputElement)   // if there are files selected
@@ -43,7 +43,7 @@ function newFolder()
 {
     let name = $("#new-folder-name").val();
     let path = getUrlVars()["path"]; // path of Parent folder of the new folder
-    sendRequest(`/api/folder?path=${path}&name=${name}`, null, newFolderCallBack, null, "PUT")
+    sendRequest(`/api/folder?path=${path}&name=${name}`, null, newFolderCallBack, undefined, undefined, "PUT")
     $("#new-folder-modal").modal("hide");
 
     function newFolderCallBack(status, resp)
@@ -60,7 +60,7 @@ function newFolder()
     }
 }
 
-function uploadFile()
+function uploadFile()  // TODO: Display a progress bar
 {
     let formData = new FormData();
     let $fileInputElement = $("#file-upload")[0];
