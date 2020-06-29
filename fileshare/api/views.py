@@ -67,7 +67,7 @@ def upload_file():
         print("Saving file to: {}".format(file_path))
 
         # Add the file into the parent directory's record
-        parent_dir.content_file = parent_dir.content_file + f",{file_name}" # Comma separated
+        parent_dir.content_file = parent_dir.content_file + f",{file_name}" if parent_dir.content_file else f"{file_name}"
 
         CommonQuery.insert_new_file_record(parent_dir, file_name, commit=False)
 
@@ -150,7 +150,7 @@ def new_folder():
 
     CommonQuery.insert_new_dir_record(parent_dir, name, commit=False)
 
-    parent_dir.content_dir = parent_dir.content_dir + f",{name}"
+    parent_dir.content_dir = parent_dir.content_dir + f",{name}" if parent_dir.content_dir else f"{name}"
 
     try:
         db.session.commit()
