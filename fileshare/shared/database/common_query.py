@@ -51,15 +51,14 @@ class CommonQuery:
     @staticmethod
     def query_last_modified_item(push_context=True) -> float:
         if push_context:
-            with app.app_context():
-                lm_file = db.session.query(db.func.max(File.last_mod)).first()[0]
-                lm_dir = db.session.query(db.func.max(Directory.last_mod)).first()[0]
+            with app.app_context():  # WARNING: Possible side effects? with default value 0?
+                lm_file = db.session.query(db.func.max(File.last_mod)).first()[0] or 0
+                lm_dir = db.session.query(db.func.max(Directory.last_mod)).first()[0] or 0
         else:
-            lm_file = db.session.query(db.func.max(File.last_mod)).first()[0]
-            lm_dir = db.session.query(db.func.max(Directory.last_mod)).first()[0]
+            lm_file = db.session.query(db.func.max(File.last_mod)).first()[0] or 0
+            lm_dir = db.session.query(db.func.max(Directory.last_mod)).first()[0] or 0
 
         return lm_file if lm_file > lm_dir else lm_dir
-
 
 
     @staticmethod

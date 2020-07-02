@@ -21,7 +21,7 @@ from typing import Union
 def db_list_directory_basic(record: Directory) -> dict:
     content = {"dirs": [], "files": []}
     if record.content_dir:
-        for folder in record.content_dir.split(","):
+        for folder in record.content_dir.split("\0"):
             dir_rel_path    = os.path.join(record.rel_path, folder)
             dir_info        = CommonQuery.query_dir_by_relative_path(dir_rel_path)
 
@@ -35,7 +35,7 @@ def db_list_directory_basic(record: Directory) -> dict:
             })
 
     if record.content_file:
-        for file in record.content_file.split(","):
+        for file in record.content_file.split("\0"):
             file_rel_path = os.path.join(record.rel_path, file)
             file_info = CommonQuery.query_file_by_relative_path(file_rel_path)
 
@@ -99,9 +99,9 @@ def delete_file_or_directory_from_db(entry: Union[Directory, File], commit=False
 
 def delete_file_from_db(file: File, commit=False):
     parent = CommonQuery.query_dir_by_relative_path(file.parent_path)
-    content_file_list = parent.content_file.split(",")
+    content_file_list = parent.content_file.split("\0")
     content_file_list.remove(file.name)
-    parent.content_file = ",".join(content_file_list)
+    parent.content_file = "\0".join(content_file_list)
 
     db.session.delete(file)
 
@@ -111,9 +111,9 @@ def delete_file_from_db(file: File, commit=False):
 # Can be merged into one function with delete_file_from_db
 def delete_dir_from_db(directory: Directory, commit=False):
     parent = CommonQuery.query_dir_by_relative_path(directory.parent_path)
-    content_dir_list = parent.content_dir.split(",")
+    content_dir_list = parent.content_dir.split("\0")
     content_dir_list.remove(directory.name)
-    parent.content_dir = ",".join(content_dir_list)
+    parent.content_dir = "\0".join(content_dir_list)
 
     db.session.delete(directory)
 

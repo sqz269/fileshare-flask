@@ -67,7 +67,7 @@ def upload_file():
         print("Saving file to: {}".format(file_path))
 
         # Add the file into the parent directory's record
-        parent_dir.content_file = parent_dir.content_file + f",{file_name}" if parent_dir.content_file else f"{file_name}"
+        parent_dir.content_file = parent_dir.content_file + f"\0{file_name}" if parent_dir.content_file else f"{file_name}"
 
         CommonQuery.insert_new_file_record(parent_dir, file_name, commit=False)
 
@@ -144,13 +144,13 @@ def new_folder():
     name = utils.get_url_param(request.args, "name")  # new folder's name
 
     parent_dir = CommonQuery.query_dir_by_relative_path(path)
-    if not parent_dir: return utils.make_status_resp_ex(103)  # Parent folder isn't valid
+    if not parent_dir: return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_MISSING)  # Parent folder isn't valid
 
     name = secure_filename(name) if app.config["SECURE_UPLOAD_FILENAME"] else name
 
     CommonQuery.insert_new_dir_record(parent_dir, name, commit=False)
 
-    parent_dir.content_dir = parent_dir.content_dir + f",{name}" if parent_dir.content_dir else f"{name}"
+    parent_dir.content_dir = parent_dir.content_dir + f"\0{name}" if parent_dir.content_dir else f"{name}"
 
     try:
         os.mkdir(os.path.join(parent_dir.abs_path, name))

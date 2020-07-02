@@ -30,8 +30,8 @@ def unpack_dir_info_to_db_entry(data: dict) -> Directory:
     entry.size          = data["size"]
     entry.dir_count     = data["sub_dir_count"]
     entry.file_count    = data["sub_file_count"]
-    entry.content_dir   = ",".join(data["dir_content"])
-    entry.content_file  = ",".join([value["name"] for value in data["file_content"].values()])
+    entry.content_dir   = "\0".join(data["dir_content"])
+    entry.content_file  = "\0".join([value["name"] for value in data["file_content"].values()])
     entry.archive_id    = None
     entry.archive_name  = None
     entry.archive_path  = None
