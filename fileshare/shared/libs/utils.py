@@ -21,8 +21,8 @@ def get_url_param(url_params: dict, target_param: str, convert_path=False) -> st
         [str] -- returns the value of the item if the paramater exists else returns empty string
     """
     try:
-        if convert_path and target_param == "path" and os.name == "nt":
-            return url_params[target_param].replace("/", "\\")
+        if convert_path and target_param == "path":
+            return url_params[target_param].replace("/", os.path.sep)
 
         return url_params[target_param]
     except:
