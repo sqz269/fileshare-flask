@@ -10,6 +10,7 @@ class STATUS_ENUM:
     RESOURCE_ACCESS_DENIED = 101
     RESOURCE_INVALID_PATH = 102
     RESOURCE_MISSING = 103
+    RESOURCE_ILLEGAL_PARAM = 104
 
 STATUS_TO_MESSAGE = {
     0: "Success",
@@ -23,7 +24,8 @@ STATUS_TO_MESSAGE = {
     100: "Resource with the same name already exist",
     101: "Access to resource has been denied by the Operating System",
     102: "Illegal Path has been provided",
-    103: "Target File/Folder does not exist"
+    103: "Target File/Folder does not exist",
+    104: "Illegal Paramater has been provided"
 }
 
 STATUS_TO_HTTP_CODE = {
@@ -38,5 +40,6 @@ STATUS_TO_HTTP_CODE = {
     100: 409,
     101: 500,
     102: 400,
-    103: 404
+    103: 404,
+    104: 400
 }

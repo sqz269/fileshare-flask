@@ -45,7 +45,7 @@ def list_directory():
     directory = CommonQuery.query_dir_by_relative_path(path)
 
     if not directory:
-        return utils.make_status_resp_ex(103)
+        return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_MISSING)
 
     data = api_utils.db_list_directory_bootstrap_table(directory) if target_type == "table" else api_utils.db_list_directory_basic(directory)
     return utils.make_json_resp_with_status(data, 200)
@@ -58,22 +58,27 @@ def upload_file():
     files = request.files.getlist("File")
 
     parent_dir = CommonQuery.query_dir_by_relative_path(path)
-    if not parent_dir: return utils.make_status_resp_ex(103)
+    if not parent_dir: return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_MISSING)
 
-    for file in files:
-        file_name = secure_filename(file.filename) if app.config["SECURE_UPLOAD_FILENAME"] else file.filename
-        file_path = os.path.join(parent_dir.abs_path, file_name)  # Construct the new file's absolute path
-        file.save(file_path)  # THe file have to be save before the database write cuz it needs to detect it's mime type
-        print("Saving file to: {}".format(file_path))
+    try:
+        for file in files:
+            file_name = secure_filename(file.filename) if app.config["SECURE_UPLOAD_FILENAME"] else file.filename
+            file_path = os.path.join(parent_dir.abs_path, file_name)  # Construct the new file's absolute path
+            file.save(file_path)  # THe file have to be save before the database write cuz it needs to detect it's mime type
+            # print("Saving file to: {}".format(file_path))
 
-        # Add the file into the parent directory's record
-        parent_dir.content_file = parent_dir.content_file + f"\0{file_name}" if parent_dir.content_file else f"{file_name}"
+            # Add the file into the parent directory's record
+            parent_dir.content_file = parent_dir.content_file + f"\0{file_name}" if parent_dir.content_file else f"{file_name}"
 
-        CommonQuery.insert_new_file_record(parent_dir, file_name, commit=False)
+            CommonQuery.insert_new_file_record(parent_dir, file_name, commit=False)
+    except (PermissionError):
+        pass
+    except (OSError):
+        pass
 
     db.session.commit()  # Update the parent folder's database entry to match the newly added file names
 
-    return utils.make_status_resp_ex(0)
+    return utils.make_status_resp_ex(STATUS_ENUM.SUCCESS)
 
 
 @api.route("/folder/download", methods=["POST"])
@@ -82,7 +87,7 @@ def download_folder():
 
     directory = CommonQuery.query_dir_by_relative_path(path)
     if not directory:
-        return utils.make_status_resp_ex(103)
+        return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_MISSING)
 
     if not directory.archive_id:
         api_utils.generate_and_register_archive(directory, commit=True)  # Might take a long time
@@ -135,7 +140,7 @@ def delete_file_or_folder():
         return utils.make_status_resp(0, f"Errors [{STATUS_TO_MESSAGE[failed_to_delete_reason]}] has prevented some file from being deleted. A total of {len(failed_to_delete)} items out of {len(targets)} failed to be deleted", STATUS_TO_HTTP_CODE[0])
 
 
-    return utils.make_status_resp_ex(0)
+    return utils.make_status_resp_ex(STATUS_ENUM.SUCCESS)
 
 
 @api.route("/folder", methods=["PUT"])
@@ -157,7 +162,9 @@ def new_folder():
         db.session.commit()
     except (exc.IntegrityError, FileExistsError):
         return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_ALREADY_EXISTS)
-    except PermissionError:
+    except PermissionError:  # This program does not have privilege to create resource at the target path
         return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_ACCESS_DENIED)
+    except OSError:  # OS preventing us from creating a folder with the provided name
+        return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_ILLEGAL_PARAM)
 
     return utils.make_status_resp_ex(STATUS_ENUM.SUCCESS)
