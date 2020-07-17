@@ -1,53 +1,33 @@
-function notifyUserError(heading, message)
+function _notifyBase(type, heading, message, onclick=undefined)
 {
-    Lobibox.notify("error", {
+    Lobibox.notify(type, {
         title: heading,
         msg: message,
         sound: false,
         position: "top right",
         continueDelayOnInactiveTab: false,
         pauseDelayOnHover: true,
-        icon: false
+        icon: false,
+        onClick: onclick
     });
+}
+
+function notifyUserError(heading, message)
+{
+    _notifyBase("error", heading, message);
 }
 
 function notifyUserSuccess(heading, message)
 {
-    Lobibox.notify("success", {
-        title: heading,
-        msg: message,
-        sound: false,
-        position: "top right",
-        continueDelayOnInactiveTab: false,
-        pauseDelayOnHover: true, 
-        icon: false
-    });
+    _notifyBase("success", heading, message);
 }
 
 function notifyUserErrorClickAction(heading, message, onClickFunction)
 {
-    Lobibox.notify("error", {
-        title: heading,
-        msg: message,
-        sound: false,
-        position: "top right",
-        continueDelayOnInactiveTab: false,
-        pauseDelayOnHover: true, 
-        icon: false,
-        onClick: onClickFunction
-    });
+    _notifyBase("error", heading, message, onClickFunction);
 }
 
 function notifyUserSuccessClickAction(heading, message, onClickFunction)
 {
-    Lobibox.notify("success", {
-        title: heading,
-        msg: message,
-        sound: false,
-        position: "top right",
-        continueDelayOnInactiveTab: false,
-        pauseDelayOnHover: true, 
-        icon: false,
-        onClick: onClickFunction
-    });
+    _notifyBase("success", heading, message, onClickFunction);
 }

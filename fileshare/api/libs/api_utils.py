@@ -5,37 +5,28 @@ from fileshare.shared.database.database import db
 
 from fileshare.shared.database.common_query import CommonQuery
 
+from fileshare.api.libs.bootstrap_table_html import BootstrapTableHtmlFormatter
+
+from fileshare import app
+
+from fileshare.shared.libs import utils
+import hashlib
+
 import os
 import shutil
 
 from typing import Union
 
 
-def name_to_html_link(name, path, is_file):
-    TEMPLATE_DIRECTORY = f"""<a href="javascript:changeDirectory('{path}')">{name}</a>"""
-    TEMPLATE_FILE = f"""<a href="{path}">{name}</a>"""
-    if is_file:
-        return TEMPLATE_FILE
-    return TEMPLATE_DIRECTORY
-
-
-def db_list_files(record: Directory, for_bootstrap_tables=False) -> dict:
-    
+def db_list_directory_basic(record: Directory) -> dict:
     content = {"dirs": [], "files": []}
     if record.content_dir:
-        for folder in record.content_dir.split(","):
+        for folder in record.content_dir.split("\0"):
             dir_rel_path    = os.path.join(record.rel_path, folder)
             dir_info        = CommonQuery.query_dir_by_relative_path(dir_rel_path)
-            
-            if for_bootstrap_tables:
-                name = name_to_html_link(dir_info.name, 
-                                        dir_info.rel_path.replace("\\", "/"), 
-                                        False)
-            else:
-                name = dir_info.name
 
             content["dirs"].append({
-                    "name"      : name,
+                    "name"      : dir_info.name,
                     "path"      : dir_info.rel_path.replace("\\", "/"),
                     "size"      : dir_info.size,
                     "last_mod"  : dir_info.last_mod,
@@ -44,20 +35,12 @@ def db_list_files(record: Directory, for_bootstrap_tables=False) -> dict:
             })
 
     if record.content_file:
-        for file in record.content_file.split(","):
+        for file in record.content_file.split("\0"):
             file_rel_path = os.path.join(record.rel_path, file)
             file_info = CommonQuery.query_file_by_relative_path(file_rel_path)
 
-            if for_bootstrap_tables:
-                name = name_to_html_link(file_info.name, 
-                                        file_info.rel_path.replace("\\", "/"), 
-                                        True)
-            else:
-                name = file_info.name
-
-
             content["files"].append({
-                    "name"      : name,
+                    "name"      : file_info.name,
                     "path"      : file_info.rel_path.replace("\\", "/"),
                     "size"      : file_info.size,
                     "last_mod"  : file_info.last_mod,
@@ -68,9 +51,26 @@ def db_list_files(record: Directory, for_bootstrap_tables=False) -> dict:
     return {parent_path: content}
 
 
+def db_list_directory_bootstrap_table(record: Directory) -> dict:
+    contents = db_list_directory_basic(record)
+
+    for dir_content in contents.values():
+        for folder_contained in dir_content["dirs"]:
+            folder_contained.update({"name_raw": folder_contained["name"]})
+            folder_contained["name"] = BootstrapTableHtmlFormatter.name_to_html_link(folder_contained["name"], folder_contained["path"], False)
+            folder_contained.update({"ops": BootstrapTableHtmlFormatter.generate_ops(folder_contained["name"], folder_contained["path"], False)})
+
+        for file_contained in dir_content["files"]:
+            file_contained.update({"name_raw": file_contained["name"]})
+            file_contained["name"] = BootstrapTableHtmlFormatter.name_to_html_link(file_contained["name"], file_contained["path"], True)
+            file_contained.update({"ops": BootstrapTableHtmlFormatter.generate_ops(file_contained["name"], file_contained["path"], True)})
+
+    return contents
+
+
 def delete_file_or_directory_from_filesystem(entry: Union[Directory, File]):
     """Deletes a file or a directory from the filesystem permanently
-    
+
     Arguments:
         entry {Union[Directory, File]} -- The database entry that represents the file/directory that is going to be deleted
     """
@@ -85,7 +85,7 @@ def delete_file_or_directory_from_filesystem(entry: Union[Directory, File]):
 
 def delete_file_or_directory_from_db(entry: Union[Directory, File], commit=False):
     """Delete either a file or directory entry from the database
-    
+
     Arguments:
         entry {Union[Directory, File]} -- The entry you want to delete
     """
@@ -99,23 +99,36 @@ def delete_file_or_directory_from_db(entry: Union[Directory, File], commit=False
 
 def delete_file_from_db(file: File, commit=False):
     parent = CommonQuery.query_dir_by_relative_path(file.parent_path)
-    content_file_list = parent.content_file.split(",")
+    content_file_list = parent.content_file.split("\0")
     content_file_list.remove(file.name)
-    parent.content_file = ",".join(content_file_list)
+    parent.content_file = "\0".join(content_file_list)
 
     db.session.delete(file)
 
     if commit:
         db.session.commit()
 
-
+# Can be merged into one function with delete_file_from_db
 def delete_dir_from_db(directory: Directory, commit=False):
     parent = CommonQuery.query_dir_by_relative_path(directory.parent_path)
-    content_dir_list = parent.content_dir.split(",")
+    content_dir_list = parent.content_dir.split("\0")
     content_dir_list.remove(directory.name)
-    parent.content_dir = ",".join(content_dir_list)
+    parent.content_dir = "\0".join(content_dir_list)
 
     db.session.delete(directory)
+
+    if commit:
+        db.session.commit()
+
+
+def generate_and_register_archive(directory: Directory, commit=False) -> None:
+    directory.archive_id = hashlib.md5(directory.abs_path.encode()).hexdigest()
+
+    zip_dst = os.path.join(app.config["ARCHIVE_STOREAGE_DIRECTORY"], directory.archive_id)
+    directory.archive_path = zip_dst
+    directory.archive_name = f"{directory.name}.zip"
+
+    utils.generate_archive(directory.abs_path, directory.archive_path)
 
     if commit:
         db.session.commit()

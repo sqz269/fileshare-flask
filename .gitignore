@@ -1,3 +1,6 @@
+# vscode file history extention
+.history
+
 # Visual studio code workspace file
 *.code-workspace
 

@@ -5,20 +5,20 @@ import json
 
 def abs_path_to_rel_path(abs_path: str, path_prefix: str) -> str:
     """Constructs a relative path from an absolute path
-    
-    The only thing this function does that is remove the common path 
-    
+
+    The only thing this function does that is remove the common path
+
     Arguments:
         abs_path {str} -- the absolute path that is going to be converted to relative path
         path_prefix {str} -- the path that the relative path is relative to
-    
+
     Raises:
-        AssersionError - Raises when the abs_path does not have the pre fix of path_prefix
+        AssersionError - Raises when the abs_path does not have the prefix of path_prefix
 
     Returns:
         str -- the relative path that points to the same path as abs_path that is relative to path_prefix
                 NOTE: When the abs path is the prefix path the return value with become empty
-    """    
+    """
     if os.path.commonprefix((abs_path, path_prefix)) == path_prefix:
         rel_path = abs_path[len(path_prefix):]
         if not rel_path:
@@ -52,7 +52,7 @@ def get_file_info(path: str, dirpath: str, filename: str) -> dict:
     parent_path = rel_path[:len(rel_path) - len(filename)].rstrip(os.sep)
     if not parent_path: parent_path = os.sep
 
-    file_info = {rel_path: 
+    file_info = {rel_path:
         {
             "relative_path" : rel_path,
             "absolute_path" : abs_path,
@@ -86,7 +86,7 @@ def get_directory_extra_info(path: str) -> dict:
             path = os.path.join(dirpath, file)
             if not os.path.islink(path):  # Ignore symbolic link
                 size += os.path.getsize(path)
-    
+
         file_count += len(files)
         dir_count  += len(dirs)
 
@@ -105,7 +105,7 @@ def get_directory_info(path: str, dirpath: str, file_content: dict, dir_content:
 
     Arguments:
         path {str} - the absolute path that points to the directory this is the argument from os.walk
-        dirpath {str} - the directory path (can be both abs or rel path) the first item in the tuple that os.walk returns  
+        dirpath {str} - the directory path (can be both abs or rel path) the first item in the tuple that os.walk returns
         file_content {dict} - the file content of the directory, should be dict
         dir_content {list} - list of first level sub directory should be the 2nd item in the tuple that os.walk returns
 

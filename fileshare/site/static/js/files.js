@@ -1,6 +1,6 @@
 /**
  * Change the url paramter "?path=" with out reload the page
- * 
+ *
  * @param {string} cPath current working directory
  */
 function setURLCurrentDirectory(cPath)
@@ -8,7 +8,7 @@ function setURLCurrentDirectory(cPath)
     history.pushState({path: cPath}, "", `?path=${cPath}`);
 }
 
-function setUploadFileLabel()
+function setUploadFileLabel()  // TODO: Truncate Long filename
 {
     let fileInputElement = document.getElementById("file-upload");  // get file input element
     if ("files" in fileInputElement)   // if there are files selected
@@ -22,11 +22,11 @@ function setUploadFileLabel()
             let totalFiles = 0;
             for (let i = 0; i < fileInputElement.files.length; i++)  // Count files in total
             {
-                let file = fileInputElement.files[i]; 
+                let file = fileInputElement.files[i];
                 totalFiles += 1;
             }
             if (totalFiles > 1)  // if there is more than one file selected
-            { 
+            {
                 let firstFileName = fileInputElement.files[0].name;
                 $("#file-upload-label").html(firstFileName + " and " + (totalFiles - 1) + " More");
             }
@@ -43,7 +43,7 @@ function newFolder()
 {
     let name = $("#new-folder-name").val();
     let path = getUrlVars()["path"]; // path of Parent folder of the new folder
-    sendRequest(`/api/folder?path=${path}&name=${name}`, null, newFolderCallBack, null, "PUT")
+    sendRequest(`/api/folder?path=${path}&name=${name}`, null, newFolderCallBack, undefined, undefined, "PUT")
     $("#new-folder-modal").modal("hide");
 
     function newFolderCallBack(status, resp)
@@ -51,7 +51,7 @@ function newFolder()
         resp = JSON.parse(resp);
         if (status === 200)
         {
-            notifyUserSuccess("Success", "Folder has been created");  
+            notifyUserSuccess("Success", "Folder has been created");
         }
         else
         {
@@ -60,17 +60,19 @@ function newFolder()
     }
 }
 
-function uploadFile()
+function uploadFile()  // TODO: Display a progress bar
 {
     let formData = new FormData();
     let $fileInputElement = $("#file-upload")[0];
 
     for (let i = 0; i < $fileInputElement.files.length; i++)
     {
-        formData.append("File", $fileInputElement.files[i], $fileInputElement.files[i].name);        
+        formData.append("File", $fileInputElement.files[i], $fileInputElement.files[i].name);
     }
 
     let dst = getUrlVars()["path"];
+
+    $("#upload-progress-div").removeClass("d-none");
 
     $.ajax({
         xhr: function()
@@ -97,15 +99,16 @@ function uploadFile()
         success: function()
         {
             notifyUserSuccess("Success", "File uploaded successfully");
+            $("#upload-progress-div").addClass("d-none");
         },
 
-        statusCode: 
+        statusCode:
         {
             401: function (xhr)
             {
                 // console.log("UNAUTHORIZED");
             },
-            
+
             500: function (xhr)
             {
                 // console.log("INTERNAL SERVER ERROR");
@@ -137,13 +140,13 @@ function changeDirectoryParent()
 
 /**
  * lists a directory
- * 
+ *
  * @param {string} dst the path of the directory to list
  * @param {boolean} pushHistory will the changed url be pushed to history (enabling back button to access last visited directory)
  */
 function changeDirectory(dst, pushHistory=true)
 {
-    sendRequest(`/api/file?path=${dst}&type=table`, null, changeDirectoryCallback, {"pushHistory": pushHistory});
+    sendRequest(`/api/file?path=${dst}&type=table`, null, changeDirectoryCallback, {"pushHistory": pushHistory}, undefined, "GET");
 
     function changeDirectoryCallback(status, resp, params)
     {
@@ -164,6 +167,10 @@ function changeDirectory(dst, pushHistory=true)
                     $("#table-files").bootstrapTable("load", files);
                 }
             }
+
+            $('.ops-btn').click(function(e) {  // Prevent trigger bootstrap-table's click to select when clicking on the operation button
+                e.stopPropagation();
+            });
         }
         else
         {
@@ -172,7 +179,74 @@ function changeDirectory(dst, pushHistory=true)
     }
 }
 
+function deleteItem()
+{
+    let selectionFolders = $("#table-folders").bootstrapTable("getSelections");
+    let selectionFiles = $("#table-files").bootstrapTable("getSelections");
+    $("#folder-delete-total").html(selectionFolders.length);
+    $("#file-delete-total").html(selectionFiles.length);
+    $("#delete-modal").modal("show");
+}
+
+function sendDeleteRequest()
+{
+    let selectionFolders = $("#table-folders").bootstrapTable("getSelections");
+    let selectionFiles = $("#table-files").bootstrapTable("getSelections");
+
+    let requestJson = {"file": [], "folder": []};
+    for (let i = 0; i < selectionFolders.length; i++)
+    {
+        let item = selectionFolders[i];
+        requestJson.folder.push(item.path);
+    }
+
+    for (let i = 0; i < selectionFiles.length; i++)
+    {
+        let item = selectionFiles[i];
+        requestJson.file.push(item.path);
+    }
+
+    sendRequest("/api/file", JSON.stringify(requestJson), deleteRequestCallBack, undefined, undefined, "DELETE");
+
+    function reloadWindow() {window.location.reload()}
+
+    function deleteRequestCallBack(status, resp)
+    {
+        resp = JSON.parse(resp);
+        if (status === 200)
+        {
+            notifyUserSuccessClickAction("Success", "Items has been deleted, Click Here to reload", reloadWindow);
+        }
+        else
+        {
+            notifyUserError("Error", `${resp["status"]} Failed to delete items due to ${resp['details']}`);
+        }
+    }
+}
+
 function renameFile()
 {
-    
+
+}
+
+function downloadFile(path, isFolder)
+{
+    if (isFolder)
+    {
+        sendRequest(`/api/folder/download?path=${path}`, null, downloadFolderCallback)
+
+        function downloadFolderCallback(status, message)
+        {
+            if (status >= 200 || status <= 300)
+            {
+                let urlString = `/archive?path=${path}`;
+                window.open(urlString, "_blank");
+            }
+        }
+    }
+    else
+    {
+        let urlString = path + "?mode=download";
+        window.open(urlString, "_blank");
+    }
 }

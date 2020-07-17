@@ -2,7 +2,7 @@ from flask import Blueprint, request
 
 from fileshare.shared.database.common_query import CommonQuery
 
-from fileshare.api.libs.status_to_msg import STATUS_TO_MESSAGE, STATUS_TO_HTTP_CODE
+from fileshare.api.libs.status_to_msg import STATUS_ENUM
 from fileshare.api.libs import api_utils
 
 from fileshare.shared.libs import utils
@@ -12,7 +12,7 @@ from fileshare.shared.database.database import db
 from fileshare import app
 
 from sqlalchemy import exc  # Sqlalchemy exceptions
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 
 import os
 
@@ -36,55 +36,70 @@ Resource Related Errors
 102 - Invalid/Illegal Path has been provided
 103 - Path provided does not exist
 """
-@api.route("/file", methods=["POST"])
-@api.route("/folder", methods=["POST"])
+@api.route("/file", methods=["GET"])
+@api.route("/folder", methods=["GET"])
 def list_directory():
-    path = utils.get_url_param(request.args, "path")
+    path = utils.get_url_param(request.args, "path", convert_path=True)
     target_type = utils.get_url_param(request.args, "type")
-
-    if os.name == "nt":
-        path = path.replace("/", "\\")
 
     directory = CommonQuery.query_dir_by_relative_path(path)
 
     if not directory:
-        return utils.make_status_resp_ex(103)
+        return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_MISSING)
 
-    data = api_utils.db_list_files(directory, True) if target_type == "table" else api_utils.db_list_files(directory)
+    data = api_utils.db_list_directory_bootstrap_table(directory) if target_type == "table" else api_utils.db_list_directory_basic(directory)
     return utils.make_json_resp_with_status(data, 200)
 
 
 @api.route("/file", methods=["PUT"])
-def upload():
-    path = utils.get_url_param(request.args, "path")
-
-    if os.name == "nt":
-        path = path.replace("/", "\\")
+def upload_file():
+    path = utils.get_url_param(request.args, "path", convert_path=True)
 
     files = request.files.getlist("File")
 
     parent_dir = CommonQuery.query_dir_by_relative_path(path)
-    if not parent_dir: return utils.make_status_resp_ex(103)
+    if not parent_dir: return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_MISSING)
 
-    for file in files:
-        file_name = secure_filename(file.filename) if app.config["SECURE_UPLOAD_FILENAME"] else file.filename
-        file_path = os.path.join(parent_dir.abs_path, file_name)  # Construct the new file's absolute path
-        file.save(file_path)  # THe file have to be save before the database write cuz it needs to detect it's mime type
-        print("Saving file to: {}".format(file_path))
+    try:
+        for file in files:
+            file_name = secure_filename(file.filename) if app.config["SECURE_UPLOAD_FILENAME"] else file.filename
+            file_path = os.path.join(parent_dir.abs_path, file_name)  # Construct the new file's absolute path
+            file.save(file_path)  # THe file have to be save before the database write cuz it needs to detect it's mime type
+            # print("Saving file to: {}".format(file_path))
 
-        # Add the file into the parent directory's record
-        parent_dir.content_file = parent_dir.content_file + f",{file_name}" # Comma separated
+            # Add the file into the parent directory's record
+            parent_dir.content_file = parent_dir.content_file + f"\0{file_name}" if parent_dir.content_file else f"{file_name}"
 
-        CommonQuery.insert_new_file_record(parent_dir, file_name, commit=False)
+            CommonQuery.insert_new_file_record(parent_dir, file_name, commit=False)
+    except (PermissionError):
+        pass
+    except (OSError):
+        pass
 
     db.session.commit()  # Update the parent folder's database entry to match the newly added file names
 
-    return utils.make_status_resp_ex(0)
+    return utils.make_status_resp_ex(STATUS_ENUM.SUCCESS)
+
+
+@api.route("/folder/download", methods=["POST"])
+def download_folder():
+    path = utils.get_url_param(request.args, "path", convert_path=True)
+
+    directory = CommonQuery.query_dir_by_relative_path(path)
+    if not directory:
+        return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_MISSING)
+
+    if not directory.archive_id:
+        api_utils.generate_and_register_archive(directory, commit=True)  # Might take a long time
+    elif directory.archive_id: # If there is an existing archive
+        return utils.make_json_resp_with_status({"status": 0, "details": f"There is an existing archive. view: /archive?path=<FolderPath> to access"}, 200)
+
+    return utils.make_json_resp_with_status({"status": 0, "details": "success, archive has been created"}, 201)  # 201 -> Created
 
 
 @api.route("/folder", methods=["DELETE"])
 @api.route("/file", methods=["DELETE"])
-def delete():
+def delete_file_or_folder():
     content = request.json
 
     targets = []
@@ -122,32 +137,34 @@ def delete():
     db.session.commit()
 
     if failed_to_delete:
-        return utils.make_status_resp(0, f"Errors [{STATUS_TO_MESSAGE[failed_to_delete_reason]}] has prevented some file from being deleted. A total of {len(failed_to_delete)} files out of {len(targets)} failed to be deleted", STATUS_TO_HTTP_CODE[0])
+        return utils.make_status_resp(0, f"Errors [{STATUS_TO_MESSAGE[failed_to_delete_reason]}] has prevented some file from being deleted. A total of {len(failed_to_delete)} items out of {len(targets)} failed to be deleted", STATUS_TO_HTTP_CODE[0])
 
 
-    return utils.make_status_resp_ex(0)
+    return utils.make_status_resp_ex(STATUS_ENUM.SUCCESS)
 
 
 @api.route("/folder", methods=["PUT"])
-def folder():
-    path = utils.get_url_param(request.args, "path")  # Folder's parent path
+def new_folder():
+    path = utils.get_url_param(request.args, "path", convert_path=True)  # Folder's parent path
     name = utils.get_url_param(request.args, "name")  # new folder's name
 
-    if os.name == "nt":
-        path = path.replace("/", "\\")
-
     parent_dir = CommonQuery.query_dir_by_relative_path(path)
-    if not parent_dir: return utils.make_status_resp_ex(103)  # Parent folder isn't valid
+    if not parent_dir: return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_MISSING)  # Parent folder isn't valid
 
     name = secure_filename(name) if app.config["SECURE_UPLOAD_FILENAME"] else name
 
     CommonQuery.insert_new_dir_record(parent_dir, name, commit=False)
 
-    parent_dir.content_dir = parent_dir.content_dir + f",{name}"
+    parent_dir.content_dir = parent_dir.content_dir + f"\0{name}" if parent_dir.content_dir else f"{name}"
 
     try:
+        os.mkdir(os.path.join(parent_dir.abs_path, name))
         db.session.commit()
-    except exc.IntegrityError:
-        return utils.make_status_resp_ex(100)
+    except (exc.IntegrityError, FileExistsError):
+        return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_ALREADY_EXISTS)
+    except PermissionError:  # This program does not have privilege to create resource at the target path
+        return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_ACCESS_DENIED)
+    except OSError:  # OS preventing us from creating a folder with the provided name
+        return utils.make_status_resp_ex(STATUS_ENUM.RESOURCE_ILLEGAL_PARAM)
 
-    return utils.make_status_resp_ex(0)
+    return utils.make_status_resp_ex(STATUS_ENUM.SUCCESS)
