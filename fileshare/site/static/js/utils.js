@@ -27,14 +27,34 @@ function sendRequest(url, data, callBack, callbackArgs={}, contentType = "applic
 }
 
 
-/**
- * Set the current clipboard data
- * @param {*} data 
- */
-function setClipBoardData(data)
-{
-    console.log(`Clipboard data: ${data}`);
-    
+function copyTextToClipboard(text) {
+    if (false)  // Browser disallows clipboard apis if the site in insecure
+    {
+        navigator.clipboard.writeText(text).then(function() {
+            console.log('Async: Copying to clipboard was successful!');
+        }, function(err) {
+            console.error('Async: Could not copy text: ', err);
+        });
+    }
+    else
+    {
+        $("#copy-text-insecure").val(text);
+        $("#copy-text-modal").modal("show");
+    }
+}
+
+function copyInputText(element_id) {
+    const input = document.getElementById(element_id);
+    input.focus();
+    input.select();
+    document.execCommand("copy");
+}
+
+function copyPathToClipboard(path) {
+    let url = window.location.href.split('?')[0];
+    url = url.substring(0, url.length - 1);
+    url = url + path;
+    copyTextToClipboard(url);
 }
 
 function getOwnTokenForPath()
