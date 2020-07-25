@@ -3,20 +3,28 @@ class _BootstrapTableHtmlTemplate:
     T_NAME_FILE: str                = """<a href="{path}">{name}</a>"""
 
 
-    T_OPS_OPEN_FILE_NEW_TAB: str    = """<a class="ops-btn" href="{path}" target="_blank"><i class="fas fa-fw fa-external-link-square-alt"></i></a>"""
-    T_OPS_OPEN_DIR_NEW_TAB: str     = """<a class="ops-btn" href="/?path={path}" target="_blank"><i class="fas fa-fw fa-external-link-square-alt"></i></a>"""
+    T_OPS_OPEN_FILE_NEW_TAB: str    = """<a class="dropdown-item" href="{path}" target="_blank">Open (New tab)</a>"""
+    T_OPS_OPEN_DIR_NEW_TAB: str     = """<a class="dropdown-item" href="/?path={path}" target="_blank">Open (New tab)</i></a>"""
 
-    T_OPS_PREVIEW: str              = """<a class="ops-btn" href="{path}"><i class="fas fa-eye"></i><a>"""
+    T_OPS_PREVIEW: str              = """<a class="dropdown-item" href="{path}">Open (Preview)<a>"""
 
-    T_OPS_DOWNLOAD_FOLDER: str      = """<a class="ops-btn" href="javascript:downloadFile('{path}', true)" ><i class="fas fa-fw fa-download" aria-hidden="true"></i></a>"""
-    T_OPS_DOWNLOAD_FILE: str        = """<a class="ops-btn" href="javascript:downloadFile('{path}', false)" ><i class="fas fa-fw fa-download" aria-hidden="true"></i></a>"""
+    T_OPS_DOWNLOAD_FOLDER: str      = """<a class="dropdown-item" href="javascript:downloadFile('{path}', true)" >Download</a>"""
+    T_OPS_DOWNLOAD_FILE: str        = """<a class="dropdown-item" href="javascript:downloadFile('{path}', false)" >Download</a>"""
 
+    T_OPS_COPY_ESCAPED_PATH: str    = """<a class="dropdown-item" href="javascript:copyPathToClipboard('{path}')" >Copy Path (Escaped)</a>"""
 
-    T_OPS_DELETE: str               = """<a class="ops-btn" href="javascript:deleteItem('{path}')" ><i class="fas fa-fw fa-trash"></i></i></a>"""
+    T_OPS_DELETE: str               = """<a class="dropdown-item" href="javascript:deleteItem('{path}')" >Delete</a>"""
 
-    T_OPS_RENAME: str               = """<a class="ops-btn" href="{path}" ><i class="fas fa-fw fa-edit"></i></a>"""
+    T_OPS_RENAME: str               = """<a class="dropdown-item" href="{path}" >Rename</a>"""
 
-    T_OPS_MOVE: str                 = """<a class="ops-btn" href="{path}" ><i class="fas fa-fw fa-exchange-alt"></i></a>"""
+    T_OPS_MOVE: str                 = """<a class="dropdown-item" href="{path}" >Move</a>"""
+
+    T_EXPIR_DROPDOWN: str           = """
+    <a class="dropdown-item" href="#">Action</a>
+    <a class="dropdown-item" href="#">Another action</a>
+    <a class="dropdown-item" href="#">Something else here</a>
+  </div>
+</div>"""
 
 
 class BootstrapTableHtmlFormatter:
@@ -26,16 +34,21 @@ class BootstrapTableHtmlFormatter:
             return _BootstrapTableHtmlTemplate.T_NAME_FILE.format(path=path, name=name)
         return _BootstrapTableHtmlTemplate.T_NAME_DIRECTORY.format(path=path, name=name)
 
-
     @staticmethod
     def generate_ops(name, path, is_file):
-        complete_html_string = ""
+        complete_html_string = """<div class="dropdown">
+                                  <button class="btn btn-sm btn-block dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Show Operations
+                                  </button>
+                                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">"""
         if is_file:
             complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_OPEN_FILE_NEW_TAB.format(path=path)
             complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_PREVIEW.format(path=path)
-
+            complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_DELETE.format(path=path)
+            complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_DOWNLOAD_FILE.format(path=path)
+            complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_COPY_ESCAPED_PATH.format(path=path)
         else:
             complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_OPEN_DIR_NEW_TAB.format(path=path)
 
-
+        complete_html_string = complete_html_string + "</div></div>"
         return complete_html_string
