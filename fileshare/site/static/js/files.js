@@ -60,7 +60,7 @@ function newFolder()
     }
 }
 
-function uploadFile()  // TODO: Display a progress bar
+function uploadFile()
 {
     let formData = new FormData();
     let $fileInputElement = $("#file-upload")[0];
