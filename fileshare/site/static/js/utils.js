@@ -28,7 +28,7 @@ function sendRequest(url, data, callBack, callbackArgs={}, contentType = "applic
 
 
 function copyTextToClipboard(text) {
-    if (false)  // Browser disallows clipboard apis if the site in insecure
+    if (window.isSecureContext)  // Browser disallows clipboard apis if the site in insecure
     {
         navigator.clipboard.writeText(text).then(function() {
             console.log('Async: Copying to clipboard was successful!');
