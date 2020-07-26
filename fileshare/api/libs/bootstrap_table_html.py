@@ -11,20 +11,13 @@ class _BootstrapTableHtmlTemplate:
     T_OPS_DOWNLOAD_FOLDER: str      = """<a class="dropdown-item" href="javascript:downloadFile('{path}', true)" >Download</a>"""
     T_OPS_DOWNLOAD_FILE: str        = """<a class="dropdown-item" href="javascript:downloadFile('{path}', false)" >Download</a>"""
 
-    T_OPS_COPY_ESCAPED_PATH: str    = """<a class="dropdown-item" href="javascript:copyPathToClipboard('{path}')" >Copy Path (Escaped)</a>"""
+    T_OPS_COPY_NORMALIZED_PATH: str = """<a class="dropdown-item" href="javascript:copyPathToClipboard('{path}')" >Copy Path (Escaped)</a>"""
 
     T_OPS_DELETE: str               = """<a class="dropdown-item" href="javascript:deleteItem('{path}')" >Delete</a>"""
 
     T_OPS_RENAME: str               = """<a class="dropdown-item" href="{path}" >Rename</a>"""
 
     T_OPS_MOVE: str                 = """<a class="dropdown-item" href="{path}" >Move</a>"""
-
-    T_EXPIR_DROPDOWN: str           = """
-    <a class="dropdown-item" href="#">Action</a>
-    <a class="dropdown-item" href="#">Another action</a>
-    <a class="dropdown-item" href="#">Something else here</a>
-  </div>
-</div>"""
 
 
 class BootstrapTableHtmlFormatter:
@@ -46,7 +39,7 @@ class BootstrapTableHtmlFormatter:
             complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_PREVIEW.format(path=path)
             complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_DELETE.format(path=path)
             complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_DOWNLOAD_FILE.format(path=path)
-            complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_COPY_ESCAPED_PATH.format(path=path)
+            complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_COPY_NORMALIZED_PATH.format(path=path)
         else:
             complete_html_string = complete_html_string + _BootstrapTableHtmlTemplate.T_OPS_OPEN_DIR_NEW_TAB.format(path=path)
 
