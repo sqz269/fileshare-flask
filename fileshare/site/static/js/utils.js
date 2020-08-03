@@ -31,8 +31,10 @@ function copyTextToClipboard(text) {
     if (window.isSecureContext)  // Browser disallows clipboard apis if the site in insecure
     {
         navigator.clipboard.writeText(text).then(function() {
+            notifyUserSuccess("Success", "Successfully copied text to clipboard");
             console.log('Async: Copying to clipboard was successful!');
         }, function(err) {
+            notifyUserError("Error", `Failed to copy item to clipboard. Error: ${err}`);
             console.error('Async: Could not copy text: ', err);
         });
     }
