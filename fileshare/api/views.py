@@ -2,7 +2,7 @@ from flask import Blueprint, request
 
 from fileshare.shared.database.common_query import CommonQuery
 
-from fileshare.api.libs.status_to_msg import STATUS_ENUM
+from fileshare.api.libs.status_to_msg import STATUS_ENUM, STATUS_TO_HTTP_CODE, STATUS_TO_MESSAGE
 from fileshare.api.libs import api_utils
 
 from fileshare.shared.libs import utils
@@ -108,14 +108,14 @@ def delete_file_or_folder():
         if os.name == "nt": path = path.replace("/", "\\")
         folder = CommonQuery.query_dir_by_relative_path(path)
         if not folder:
-            return utils.make_status_resp(103, f"Folder with path: {path} does not exist", STATUS_TO_HTTP_CODE[103])
+            return utils.make_status_resp(103, f"Folder with path: {path} does not exist", STATUS_TO_HTTP_CODE[STATUS_ENUM.RESOURCE_MISSING])
         targets.append(folder)
 
     for path in content["file"]:
         if os.name == "nt": path = path.replace("/", "\\")
         file = CommonQuery.query_file_by_relative_path(path)
         if not file:
-            return utils.make_status_resp(103, f"File with path: {path} does not exist", STATUS_TO_HTTP_CODE[103])
+            return utils.make_status_resp(103, f"File with path: {path} does not exist", STATUS_TO_HTTP_CODE[STATUS_ENUM.RESOURCE_MISSING])
         targets.append(file)
 
     failed_to_delete = []  # A list to store list of relative path if os.removed failed to remove them
